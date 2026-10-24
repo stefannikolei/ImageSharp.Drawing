@@ -61,7 +61,7 @@ public sealed class FacingIdentificationMarkSymbology : BarcodeSymbology
     /// <summary>
     /// Gets the patterns A to E, each as nine bits, most significant first, in which a set bit is a bar.
     /// </summary>
-    private static ReadOnlySpan<ushort> Patterns => [0b110010011, 0b101101101, 0b110101011, 0b111010111, 0b101000101];
+    internal static ReadOnlySpan<ushort> Patterns => [0b110010011, 0b101101101, 0b110101011, 0b111010111, 0b101000101];
 
     /// <inheritdoc/>
     internal override void Encode(ReadOnlySpan<char> text, BarcodeOptions options, ref BarcodeSymbol symbol)

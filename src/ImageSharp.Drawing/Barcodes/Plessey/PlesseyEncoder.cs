@@ -28,7 +28,7 @@ internal static class PlesseyEncoder
     /// <summary>
     /// The characters the symbology encodes, in value order.
     /// </summary>
-    private const string Characters = "0123456789ABCDEF";
+    public const string Characters = "0123456789ABCDEF";
 
     /// <summary>
     /// The quiet zone in modules on each side: the margin of "4 bits" the symbology gives, at five modules per bit.

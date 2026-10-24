@@ -30,7 +30,8 @@ public class BarcodeDecodeTests
     /// The families <see cref="BarcodeDecoder"/> reads so far.
     /// </summary>
     private const BarcodeFamily ImplementedFamilies = BarcodeFamily.Ean13 | BarcodeFamily.Ean8 | BarcodeFamily.UpcA | BarcodeFamily.UpcE
-        | BarcodeFamily.Code128 | BarcodeFamily.Code39 | BarcodeFamily.Pzn | BarcodeFamily.Code93 | BarcodeFamily.Codabar | BarcodeFamily.Interleaved2Of5;
+        | BarcodeFamily.Code128 | BarcodeFamily.Code39 | BarcodeFamily.Pzn | BarcodeFamily.Code93 | BarcodeFamily.Codabar | BarcodeFamily.Interleaved2Of5
+        | BarcodeFamily.Msi | BarcodeFamily.Pharmacode | BarcodeFamily.Telepen;
 
     /// <summary>
     /// Gets the resolutions at which a module of one point draws at 1 to 7 pixels. The module draws at a whole number of pixels, so these are all the
@@ -473,7 +474,7 @@ public class BarcodeDecodeTests
             }
         }
 
-        AssertBarcodeDecoderReads(pixels, image.Width, image.Height, ToFamily(format), false, null, expected);
+        AssertBarcodeDecoderReads(pixels, image.Width, image.Height, new BarcodeDecoderOptions { Families = ToFamily(format) }, null, expected);
     }
 
     /// <summary>
@@ -981,7 +982,14 @@ public class BarcodeDecodeTests
             }
         }
 
-        AssertBarcodeDecoderReads(pixels, width, height, ToFamily(format), format == BarcodeFormat.Code39Ext, identifier, expected);
+        BarcodeDecoderOptions decoderOptions = new()
+        {
+            Families = ToFamily(format),
+            Code39FullAscii = format == BarcodeFormat.Code39Ext,
+            TelepenNumeric = format == BarcodeFormat.TelepenNumeric,
+        };
+
+        AssertBarcodeDecoderReads(pixels, width, height, decoderOptions, identifier, expected);
     }
 
     /// <summary>
@@ -1012,7 +1020,7 @@ public class BarcodeDecodeTests
             _ => BarcodeFamily.IntelligentMail,
         };
 
-        AssertBarcodeDecoderReads(pixels, width, height, family, false, null, expected);
+        AssertBarcodeDecoderReads(pixels, width, height, new BarcodeDecoderOptions { Families = family }, null, expected);
     }
 
     /// <summary>
@@ -1022,29 +1030,27 @@ public class BarcodeDecodeTests
     /// <param name="pixels">The grey pixels, row by row.</param>
     /// <param name="width">The image width in pixels.</param>
     /// <param name="height">The image height in pixels.</param>
-    /// <param name="family">The family to read.</param>
-    /// <param name="fullAscii">Whether Code 39 reads in its full ASCII mode.</param>
+    /// <param name="options">The options that name the one family to read.</param>
     /// <param name="identifier">The symbology identifier, or <see langword="null"/> where the test does not check it.</param>
     /// <param name="expected">The transmitted data.</param>
     internal static void AssertBarcodeDecoderReads(
         byte[] pixels,
         int width,
         int height,
-        BarcodeFamily family,
-        bool fullAscii,
+        BarcodeDecoderOptions options,
         string identifier,
         string expected)
     {
-        if ((family & ImplementedFamilies) == 0)
+        if ((options.Families & ImplementedFamilies) == 0)
         {
             return;
         }
 
         using Image<L8> image = Image.LoadPixelData<L8>(pixels, width, height);
-        IReadOnlyList<DecodedBarcode> results = BarcodeDecoder.Decode(image, new BarcodeDecoderOptions { Families = family, Code39FullAscii = fullAscii });
+        IReadOnlyList<DecodedBarcode> results = BarcodeDecoder.Decode(image, options);
 
         DecodedBarcode result = Assert.Single(results);
-        Assert.Equal(family, result.Family);
+        Assert.Equal(options.Families, result.Family);
         if (identifier is not null)
         {
             Assert.Equal(identifier, result.SymbologyIdentifier);

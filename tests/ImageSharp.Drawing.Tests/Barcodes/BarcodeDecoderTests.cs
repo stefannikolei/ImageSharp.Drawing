@@ -63,6 +63,99 @@ public class BarcodeDecoderTests
         => AssertReads(new Code32Symbology(), "012345676", BarcodeFamily.Code32, "]A0", "012345676");
 
     /// <summary>
+    /// A Code 11 symbol decodes to the characters between its start and stop character, the check characters included. A symbol of up to ten data
+    /// characters carries the C check character, and a longer one the C and K check characters, which the symbology identifier reports as ]H0 and ]H1.
+    /// </summary>
+    /// <param name="checkCharacters">Whether the symbol carries check characters.</param>
+    /// <param name="text">The text to encode.</param>
+    /// <param name="identifier">The symbology identifier.</param>
+    /// <param name="expected">The characters the symbol carries.</param>
+    [Theory]
+    [InlineData(CheckCharacterMode.None, "123-45", "]H0", "123-45")]
+    [InlineData(CheckCharacterMode.Compute, "123-45", "]H0", "123-455")]
+    [InlineData(CheckCharacterMode.Compute, "0123456789", "]H1", "012345678903")]
+    public void Code11_RoundTrips(CheckCharacterMode checkCharacters, string text, string identifier, string expected)
+        => AssertReads(new Code11Symbology(checkCharacters), text, BarcodeFamily.Code11, identifier, expected);
+
+    /// <summary>
+    /// A Plessey symbol decodes to its hexadecimal data. The two check characters of the cyclic redundancy check are symbol overhead.
+    /// </summary>
+    [Fact]
+    public void Plessey_RoundTrips()
+        => AssertReads(new PlesseySymbology(), "01234ABCDEF", BarcodeFamily.Plessey, "]P0", "01234ABCDEF");
+
+    /// <summary>
+    /// A Telepen Numeric symbol decodes in the numeric mode to its digit pairs, and to a digit and X for the last pair.
+    /// </summary>
+    [Fact]
+    public void TelepenNumeric_RoundTripsWithX()
+    {
+        using Image<L8> image = DrawImage(new TelepenNumericSymbology(), "123X", new BarcodeOptions());
+
+        DecodedBarcode result = Assert.Single(BarcodeDecoder.Decode(image, new BarcodeDecoderOptions { Families = BarcodeFamily.Telepen, TelepenNumeric = true }));
+        Assert.Equal("123X", result.Text);
+        Assert.Equal("]B1", result.SymbologyIdentifier);
+    }
+
+    /// <summary>
+    /// A Channel Code symbol decodes to its value with as many digits as its channels less one, leading zeros included, with the full and the short finder
+    /// pattern.
+    /// </summary>
+    /// <param name="shortFinder">Whether the symbol has the short finder pattern.</param>
+    /// <param name="text">The digits.</param>
+    [Theory]
+    [InlineData(false, "12")]
+    [InlineData(false, "007")]
+    [InlineData(false, "1234")]
+    [InlineData(false, "7742862")]
+    [InlineData(true, "26")]
+    [InlineData(true, "576688")]
+    public void ChannelCode_RoundTrips(bool shortFinder, string text)
+        => AssertReads(new ChannelCodeSymbology(shortFinder), text, BarcodeFamily.ChannelCode, null, text);
+
+    /// <summary>
+    /// A BC412 symbol decodes to its data. The check character the symbol carries after the first data character is symbol overhead.
+    /// </summary>
+    /// <param name="text">The data.</param>
+    [Theory]
+    [InlineData("AQ45670")]
+    [InlineData("0R9GLVHA8EZ4NTS1J2")]
+    public void Bc412_RoundTrips(string text)
+        => AssertReads(new Bc412Symbology(), text, BarcodeFamily.Bc412, null, text);
+
+    /// <summary>
+    /// A PosiCode symbol decodes to its text in every version: the standard versions through their character sets, shifts and function 4 characters, and the
+    /// limited versions through the limited set.
+    /// </summary>
+    /// <param name="version">The version.</param>
+    /// <param name="text">The text.</param>
+    [Theory]
+    [InlineData(PosiCodeVersion.A, "PosiCode 1!")]
+    [InlineData(PosiCodeVersion.B, "Hello, World")]
+    [InlineData(PosiCodeVersion.A, "Größe ÄÖÜ")]
+    [InlineData(PosiCodeVersion.B, "\u00C0\u00C9\u00CE\u00D5\u00DC\u00DD")]
+    [InlineData(PosiCodeVersion.LimitedA, "ABC-123.")]
+    [InlineData(PosiCodeVersion.LimitedB, "XYZ")]
+    public void PosiCode_RoundTrips(PosiCodeVersion version, string text)
+    {
+        text = System.Text.RegularExpressions.Regex.Unescape(text);
+        AssertReads(new PosiCodeSymbology(version), text, BarcodeFamily.PosiCode, null, text);
+    }
+
+    /// <summary>
+    /// A Facing Identification Mark decodes to its pattern letter.
+    /// </summary>
+    /// <param name="text">The pattern letter.</param>
+    [Theory]
+    [InlineData("A")]
+    [InlineData("B")]
+    [InlineData("C")]
+    [InlineData("D")]
+    [InlineData("E")]
+    public void FacingIdentificationMark_RoundTrips(string text)
+        => AssertReads(new FacingIdentificationMarkSymbology(), text, BarcodeFamily.FacingIdentificationMark, null, text);
+
+    /// <summary>
     /// A symbol reads upright, on either side and upside down.
     /// </summary>
     /// <param name="mode">The rotation of the image.</param>

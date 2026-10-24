@@ -28,7 +28,7 @@ internal static class Bc412Encoder
     /// The characters the symbology encodes, in pattern order and in the order the check calculation values them. The letter O is not in the set, and the digit
     /// 0 stands in for it.
     /// </summary>
-    private const string Characters = "0R9GLVHA8EZ4NTS1J2Q6C7DYKBUIX3FWP5M";
+    public const string Characters = "0R9GLVHA8EZ4NTS1J2Q6C7DYKBUIX3FWP5M";
 
     /// <summary>
     /// The quiet zone in modules on each side. The symbol widths, 13.2 mm at 7 data characters and 29.04 mm at 18, exceed the bars by 0.96 mm at the 0.12 mm
@@ -96,7 +96,7 @@ internal static class Bc412Encoder
     /// Gets the space widths of every character, four per character, in the order of <see cref="Characters"/>. Each space follows a bar of one module, and
     /// the four bars and four spaces add to twelve modules.
     /// </summary>
-    private static ReadOnlySpan<byte> Spaces =>
+    public static ReadOnlySpan<byte> Spaces =>
     [
         1, 1, 1, 5, 3, 1, 2, 2, 1, 3, 1, 3, 2, 1, 2, 3, 2, 2, 3, 1,
         3, 3, 1, 1, 2, 1, 3, 2, 1, 3, 2, 2, 1, 2, 4, 1, 1, 5, 1, 1,

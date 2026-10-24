@@ -27,6 +27,15 @@ public static class BarcodeDecoder
         new Code2Of5Reader(Code2Of5Variant.Matrix),
         new Code2Of5Reader(Code2Of5Variant.Coop),
         new Code2Of5Reader(Code2Of5Variant.Datalogic),
+        new Code11Reader(),
+        new MsiReader(),
+        new PlesseyReader(),
+        new TelepenReader(),
+        new ChannelCodeReader(),
+        new Bc412Reader(),
+        new PosiCodeReader(),
+        new PharmacodeReader(),
+        new FacingIdentificationMarkReader(),
     ];
 
     /// <summary>

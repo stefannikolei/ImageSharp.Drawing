@@ -124,6 +124,19 @@ internal static class ChannelCodeEncoder
     }
 
     /// <summary>
+    /// Returns the value of the space and bar widths of a symbol: the position of the sequence in the order of the symbology, which
+    /// <see cref="BuildSymbol"/> unranks.
+    /// </summary>
+    /// <param name="spaces">The space width of each channel in modules.</param>
+    /// <param name="bars">The bar width of each channel in modules.</param>
+    /// <returns>The value, or -1 when the widths break the width rules of the symbology.</returns>
+    public static int Rank(ReadOnlySpan<int> spaces, ReadOnlySpan<int> bars)
+    {
+        using PooledBuffer<int> countBuffer = new(SequenceCounter.StateCount(spaces.Length));
+        return new SequenceCounter(countBuffer.Span, spaces.Length).Rank(spaces, bars);
+    }
+
+    /// <summary>
     /// Counts and unranks the space and bar sequences of one channel count. The order of the symbology takes each space width from the narrowest, then each bar
     /// width from the narrowest, channel by channel, so the sequences under one choice form one block of positions. The counter owns the memo of the block
     /// sizes it has counted, which the caller rents.
@@ -226,6 +239,57 @@ internal static class ChannelCodeEncoder
             // The last space and the last bar take all the width left, so the symbol width stays constant.
             spaces[this.channels - 1] = spaceWidth;
             bars[this.channels - 1] = barWidth;
+        }
+
+        /// <summary>
+        /// Returns the position of a sequence in the order of the symbology: the sizes of the blocks of every choice that comes before each choice of the
+        /// sequence, the inverse of <see cref="Unrank"/>.
+        /// </summary>
+        /// <param name="spaces">The space width of each channel.</param>
+        /// <param name="bars">The bar width of each channel.</param>
+        /// <returns>The position, or -1 when the sequence breaks the width rules.</returns>
+        public int Rank(ReadOnlySpan<int> spaces, ReadOnlySpan<int> bars)
+        {
+            int barWidth = this.channels;
+            int spaceWidth = this.channels;
+            int previousBar = 1;
+            int pair = 2;
+            int value = 0;
+            for (int channel = 0; channel < this.channels - 1; channel++)
+            {
+                int chosenSpace = spaces[channel];
+                int chosenBar = bars[channel];
+                if (chosenSpace < 1 || chosenSpace > spaceWidth || chosenBar < FirstBar(chosenSpace, previousBar, pair) || chosenBar > barWidth)
+                {
+                    return -1;
+                }
+
+                // Every space narrower than the chosen one comes first with all its bars, then the narrower bars of the chosen space.
+                for (int space = 1; space <= chosenSpace; space++)
+                {
+                    int lastBar = space == chosenSpace ? chosenBar - 1 : barWidth;
+                    for (int bar = FirstBar(space, previousBar, pair); bar <= lastBar; bar++)
+                    {
+                        int nextPrevious = Math.Min(bar, WidthCap);
+                        int nextPair = Math.Min(previousBar + space, WidthCap);
+                        value += this.Count(channel + 1, barWidth + 1 - bar, spaceWidth + 1 - space, nextPrevious, nextPair);
+                    }
+                }
+
+                barWidth += 1 - chosenBar;
+                spaceWidth += 1 - chosenSpace;
+                pair = Math.Min(previousBar + chosenSpace, WidthCap);
+                previousBar = Math.Min(chosenBar, WidthCap);
+            }
+
+            // The last channel takes all the width left.
+            int last = this.channels - 1;
+            if (spaces[last] != spaceWidth || bars[last] != barWidth || FirstBar(spaceWidth, previousBar, pair) > barWidth)
+            {
+                return -1;
+            }
+
+            return value;
         }
 
         /// <summary>

@@ -117,7 +117,7 @@ public enum BarcodeFamily : ulong
     Plessey = 1UL << 19,
 
     /// <summary>
-    /// Telepen, in its ASCII and its numeric form.
+    /// Telepen, read in its ASCII mode. <see cref="BarcodeDecoderOptions.TelepenNumeric"/> selects the numeric mode.
     /// </summary>
     Telepen = 1UL << 20,
 

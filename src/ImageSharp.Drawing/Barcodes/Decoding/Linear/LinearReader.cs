@@ -15,6 +15,12 @@ internal abstract class LinearReader
     public abstract BarcodeFamily Families { get; }
 
     /// <summary>
+    /// Gets a value indicating whether the symbology reads in one direction only, from the left of the upright image. A symbol whose characters read the
+    /// same from either end, such as the bars of a Pharmacode, would give a second value read from the right.
+    /// </summary>
+    public virtual bool Directional => false;
+
+    /// <summary>
     /// Searches the runs for a symbol, from the bar at the start index on.
     /// </summary>
     /// <param name="runs">The runs of the scan line in pixels, light first. The last run is light.</param>

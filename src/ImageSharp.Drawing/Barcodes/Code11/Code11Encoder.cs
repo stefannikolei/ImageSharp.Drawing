@@ -67,7 +67,7 @@ internal static class Code11Encoder
     /// a clear bit a narrow one. The gap that follows the character is not in the pattern. The entries are in the order of <see cref="Characters"/>, and the
     /// last entry is the start and stop character.
     /// </summary>
-    private static ReadOnlySpan<byte> Patterns => [0x01, 0x11, 0x09, 0x18, 0x05, 0x14, 0x0C, 0x03, 0x12, 0x10, 0x04, 0x06];
+    public static ReadOnlySpan<byte> Patterns => [0x01, 0x11, 0x09, 0x18, 0x05, 0x14, 0x0C, 0x03, 0x12, 0x10, 0x04, 0x06];
 
     /// <summary>
     /// Returns the value of a character, which is its index in <see cref="Characters"/>.

@@ -34,4 +34,10 @@ public sealed class BarcodeDecoderOptions
     /// stands for one lowercase letter. The standard mode reads the characters the symbol carries. The default is <see langword="false"/>.
     /// </summary>
     public bool Code39FullAscii { get; set; }
+
+    /// <summary>
+    /// Gets or sets a value indicating whether a Telepen symbol reads in its numeric mode, in which each character stands for two digits, or for a digit and
+    /// X. A Telepen symbol does not mark the mode it carries, so the options name it. The default is <see langword="false"/>, the ASCII mode.
+    /// </summary>
+    public bool TelepenNumeric { get; set; }
 }

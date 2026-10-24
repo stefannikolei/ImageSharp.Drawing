@@ -93,8 +93,16 @@ internal static class LinearScanner
             ReadOnlySpan<int> reversed = backward[..count];
             foreach (LinearReader reader in readers)
             {
+                if (reader.Directional && turned)
+                {
+                    continue;
+                }
+
                 ReadLine(context, reader, runs, starts[..count], false, y, width, turned, candidates);
-                ReadLine(context, reader, reversed, starts[..count], true, y, width, turned, candidates);
+                if (!reader.Directional)
+                {
+                    ReadLine(context, reader, reversed, starts[..count], true, y, width, turned, candidates);
+                }
             }
         }
     }
