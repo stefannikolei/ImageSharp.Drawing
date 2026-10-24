@@ -69,6 +69,20 @@ internal sealed class GaloisField
         => a == 0 || b == 0 ? 0 : this.exp[this.log[a] + this.log[b]];
 
     /// <summary>
+    /// Returns the logarithm to the base alpha of a field element.
+    /// </summary>
+    /// <param name="a">The element, not zero.</param>
+    /// <returns>The power of alpha that gives the element, 0 to size - 2.</returns>
+    public int Log(int a) => this.log[a];
+
+    /// <summary>
+    /// Returns the multiplicative inverse of a field element.
+    /// </summary>
+    /// <param name="a">The element, not zero.</param>
+    /// <returns>The inverse.</returns>
+    public int Inverse(int a) => this.exp[this.Size - 1 - this.log[a]];
+
+    /// <summary>
     /// Writes the generator polynomial (x + alpha^r)(x + alpha^(r+1)) ... (x + alpha^(r+k-1)) of a code with k check symbols, where r is the first root. The
     /// polynomial is monic, so the coefficient of x^k is 1 and is not written.
     /// </summary>

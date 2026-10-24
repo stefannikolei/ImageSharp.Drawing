@@ -27,6 +27,11 @@ public class BarcodeDecodeTests
         + "\n\n\n\n\n\n\nNON\n\nSpende 100 € Ș ț ő ÿ\nEPD\n\n\n";
 
     /// <summary>
+    /// The families <see cref="BarcodeDecoder"/> reads so far.
+    /// </summary>
+    private const BarcodeFamily ImplementedFamilies = BarcodeFamily.Code128;
+
+    /// <summary>
     /// Gets the resolutions at which a module of one point draws at 1 to 7 pixels. The module draws at a whole number of pixels, so these are all the
     /// module widths from 72 to 504 dots per inch.
     /// </summary>
@@ -466,6 +471,8 @@ public class BarcodeDecodeTests
                 barcode.Dispose();
             }
         }
+
+        AssertBarcodeDecoderReads(pixels, image.Width, image.Height, ToFamily(format), false, null, expected);
     }
 
     /// <summary>
@@ -972,6 +979,8 @@ public class BarcodeDecodeTests
                 barcode.Dispose();
             }
         }
+
+        AssertBarcodeDecoderReads(pixels, width, height, ToFamily(format), format == BarcodeFormat.Code39Ext, identifier, expected);
     }
 
     /// <summary>
@@ -994,6 +1003,105 @@ public class BarcodeDecodeTests
         Assert.True(result is not null, "No decode.");
         Assert.Equal(format, result.BarcodeFormat);
         Assert.Equal(expected, result.Text);
+
+        BarcodeFamily family = format switch
+        {
+            ZXingNet.BarcodeFormat.MSI => BarcodeFamily.Msi,
+            ZXingNet.BarcodeFormat.PHARMA_CODE => BarcodeFamily.Pharmacode,
+            _ => BarcodeFamily.IntelligentMail,
+        };
+
+        AssertBarcodeDecoderReads(pixels, width, height, family, false, null, expected);
+    }
+
+    /// <summary>
+    /// Decodes the pixels with <see cref="BarcodeDecoder"/>, restricted to one family, and checks the family, the symbology identifier and the transmitted
+    /// data. The expectations are those the independent decoders meet, so the two decoders agree on every symbol.
+    /// </summary>
+    /// <param name="pixels">The grey pixels, row by row.</param>
+    /// <param name="width">The image width in pixels.</param>
+    /// <param name="height">The image height in pixels.</param>
+    /// <param name="family">The family to read.</param>
+    /// <param name="fullAscii">Whether Code 39 reads in its full ASCII mode.</param>
+    /// <param name="identifier">The symbology identifier, or <see langword="null"/> where the test does not check it.</param>
+    /// <param name="expected">The transmitted data.</param>
+    internal static void AssertBarcodeDecoderReads(
+        byte[] pixels,
+        int width,
+        int height,
+        BarcodeFamily family,
+        bool fullAscii,
+        string identifier,
+        string expected)
+    {
+        if ((family & ImplementedFamilies) == 0)
+        {
+            return;
+        }
+
+        using Image<L8> image = Image.LoadPixelData<L8>(pixels, width, height);
+        IReadOnlyList<DecodedBarcode> results = BarcodeDecoder.Decode(image, new BarcodeDecoderOptions { Families = family, Code39FullAscii = fullAscii });
+
+        DecodedBarcode result = Assert.Single(results);
+        Assert.Equal(family, result.Family);
+        if (identifier is not null)
+        {
+            Assert.Equal(identifier, result.SymbologyIdentifier);
+        }
+
+        Assert.Equal(expected, result.Text);
+    }
+
+    /// <summary>
+    /// Returns the family of <see cref="BarcodeDecoder"/> that reads a format of zxing-cpp.
+    /// </summary>
+    /// <param name="format">The format.</param>
+    /// <returns>The family.</returns>
+    private static BarcodeFamily ToFamily(BarcodeFormat format)
+    {
+        // The formats of zxing-cpp are values, not constants, so they compare in turn.
+        (BarcodeFormat Format, BarcodeFamily Family)[] families =
+        [
+            (BarcodeFormat.EAN13, BarcodeFamily.Ean13),
+            (BarcodeFormat.EAN8, BarcodeFamily.Ean8),
+            (BarcodeFormat.UPCA, BarcodeFamily.UpcA),
+            (BarcodeFormat.UPCE, BarcodeFamily.UpcE),
+            (BarcodeFormat.Code128, BarcodeFamily.Code128),
+            (BarcodeFormat.Code39Std, BarcodeFamily.Code39),
+            (BarcodeFormat.Code39Ext, BarcodeFamily.Code39),
+            (BarcodeFormat.PZN, BarcodeFamily.Pzn),
+            (BarcodeFormat.Code93, BarcodeFamily.Code93),
+            (BarcodeFormat.ITF, BarcodeFamily.Interleaved2Of5),
+            (BarcodeFormat.Codabar, BarcodeFamily.Codabar),
+            (BarcodeFormat.TelepenAlpha, BarcodeFamily.Telepen),
+            (BarcodeFormat.TelepenNumeric, BarcodeFamily.Telepen),
+            (BarcodeFormat.DataBarOmni, BarcodeFamily.DataBar),
+            (BarcodeFormat.DataBarStk, BarcodeFamily.DataBar),
+            (BarcodeFormat.DataBarStkOmni, BarcodeFamily.DataBar),
+            (BarcodeFormat.DataBarLtd, BarcodeFamily.DataBarLimited),
+            (BarcodeFormat.DataBarExp, BarcodeFamily.DataBarExpanded),
+            (BarcodeFormat.DataBarExpStk, BarcodeFamily.DataBarExpanded),
+            (BarcodeFormat.PDF417, BarcodeFamily.Pdf417),
+            (BarcodeFormat.CompactPDF417, BarcodeFamily.Pdf417),
+            (BarcodeFormat.MicroPDF417, BarcodeFamily.MicroPdf417),
+            (BarcodeFormat.DataMatrix, BarcodeFamily.DataMatrix),
+            (BarcodeFormat.QRCode, BarcodeFamily.QrCode),
+            (BarcodeFormat.MicroQRCode, BarcodeFamily.MicroQrCode),
+            (BarcodeFormat.RMQRCode, BarcodeFamily.RectangularMicroQrCode),
+            (BarcodeFormat.AztecCode, BarcodeFamily.Aztec),
+            (BarcodeFormat.AztecRune, BarcodeFamily.AztecRune),
+            (BarcodeFormat.MaxiCode, BarcodeFamily.MaxiCode),
+        ];
+
+        foreach ((BarcodeFormat Format, BarcodeFamily Family) entry in families)
+        {
+            if (entry.Format == format)
+            {
+                return entry.Family;
+            }
+        }
+
+        throw new ArgumentOutOfRangeException(nameof(format));
     }
 
     /// <summary>

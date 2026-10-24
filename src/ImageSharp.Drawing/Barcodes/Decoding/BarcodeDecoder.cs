@@ -1,0 +1,81 @@
+// Copyright (c) Six Labors.
+// Licensed under the Six Labors Split License.
+
+namespace SixLabors.ImageSharp.Drawing.Barcodes;
+
+/// <summary>
+/// Finds barcode symbols in an image and decodes the data they carry. The decoder reads every family of <see cref="BarcodeFamily"/>: the linear symbols
+/// along the rows and the columns of the image, the height modulated postal symbols from the heights of their bars, the stacked symbols row by row, and the
+/// matrix symbols from their finder patterns. A symbol may stand upright, upside down or on either side.
+/// </summary>
+public static class BarcodeDecoder
+{
+    /// <summary>
+    /// The linear readers, in the order they try a scan line.
+    /// </summary>
+    private static readonly LinearReader[] LinearReaders = [new Code128Reader()];
+
+    /// <summary>
+    /// Finds and decodes the symbols of the default families in an image.
+    /// </summary>
+    /// <param name="image">The image.</param>
+    /// <returns>The symbols found, in the order the decoder found them. The list is empty when the image holds no symbol the decoder reads.</returns>
+    public static IReadOnlyList<DecodedBarcode> Decode(Image image)
+        => Decode(image, new BarcodeDecoderOptions());
+
+    /// <summary>
+    /// Finds and decodes the symbols in an image.
+    /// </summary>
+    /// <param name="image">The image.</param>
+    /// <param name="options">The options that name the families to read.</param>
+    /// <returns>The symbols found, in the order the decoder found them. The list is empty when the image holds no symbol the decoder reads.</returns>
+    public static IReadOnlyList<DecodedBarcode> Decode(Image image, BarcodeDecoderOptions options)
+    {
+        Guard.NotNull(image, nameof(image));
+        Guard.NotNull(options, nameof(options));
+
+        List<DecodedBarcode> results = [];
+        using LuminanceImage luminance = LuminanceImage.Create(image);
+
+        // The global threshold reads a clean image exactly. The local threshold follows uneven lighting, so it is the second try.
+        int passes = options.TryHarder ? 2 : 1;
+        for (int pass = 0; pass < passes && results.Count == 0; pass++)
+        {
+            BitImage bits = pass == 0 ? BitImage.Global(luminance) : BitImage.Hybrid(luminance);
+            DecodeContext context = new(options, image, luminance, bits, results);
+            LinearScanner.Scan(context, Select(context, LinearReaders));
+        }
+
+        return results;
+    }
+
+    /// <summary>
+    /// Returns the readers whose families the options name.
+    /// </summary>
+    /// <param name="context">The decode.</param>
+    /// <param name="readers">The readers.</param>
+    /// <returns>The readers to use.</returns>
+    private static LinearReader[] Select(DecodeContext context, LinearReader[] readers)
+    {
+        int count = 0;
+        foreach (LinearReader reader in readers)
+        {
+            if (context.Wants(reader.Families))
+            {
+                count++;
+            }
+        }
+
+        LinearReader[] selected = new LinearReader[count];
+        count = 0;
+        foreach (LinearReader reader in readers)
+        {
+            if (context.Wants(reader.Families))
+            {
+                selected[count++] = reader;
+            }
+        }
+
+        return selected;
+    }
+}

@@ -159,7 +159,7 @@ internal static class Code128Encoder
     /// Specifications lists them: six elements each, three bars and three spaces of one to four modules, except the stop character, <see cref="Stop"/>, which
     /// takes seven.
     /// </summary>
-    private static ReadOnlySpan<uint> Patterns =>
+    public static ReadOnlySpan<uint> Patterns =>
     [
         0x212222, 0x222122, 0x222221, 0x121223, 0x121322, 0x131222, 0x122213, 0x122312,
         0x132212, 0x221213, 0x221312, 0x231212, 0x112232, 0x122132, 0x122231, 0x113222,
