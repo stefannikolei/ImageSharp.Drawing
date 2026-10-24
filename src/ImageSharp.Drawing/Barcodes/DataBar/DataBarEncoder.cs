@@ -93,17 +93,17 @@ internal static class DataBarEncoder
     /// <summary>
     /// The modulus that splits the data value into the left and right pair values.
     /// </summary>
-    private const int PairModulus = 4537077;
+    public const int PairModulus = 4537077;
 
     /// <summary>
     /// The modulus that splits a pair value into its outside and inside symbol characters.
     /// </summary>
-    private const int CharacterModulus = 1597;
+    public const int CharacterModulus = 1597;
 
     /// <summary>
     /// The modulus of the check value.
     /// </summary>
-    private const int CheckModulus = 79;
+    public const int CheckModulus = 79;
 
     /// <summary>
     /// The number of digits that the symbol encodes: the GTIN without its check digit.
@@ -123,17 +123,17 @@ internal static class DataBarEncoder
     /// <summary>
     /// The number of modules of an outside symbol character, the first or the third.
     /// </summary>
-    private const int OutsideModules = 16;
+    public const int OutsideModules = 16;
 
     /// <summary>
     /// The number of modules of an inside symbol character, the second or the fourth.
     /// </summary>
-    private const int InsideModules = 15;
+    public const int InsideModules = 15;
 
     /// <summary>
     /// The first group of the inside symbol characters in <see cref="GroupSum"/>. The groups before it are the groups of the outside symbol characters.
     /// </summary>
-    private const int FirstInsideGroup = 5;
+    public const int FirstInsideGroup = 5;
 
     /// <summary>
     /// The number of elements of a finder pattern.
@@ -143,7 +143,7 @@ internal static class DataBarEncoder
     /// <summary>
     /// The number of finder patterns in <see cref="FinderPatterns"/>.
     /// </summary>
-    private const int FinderValues = 9;
+    public const int FinderValues = 9;
 
     /// <summary>
     /// The number of modules of the first three elements of a finder pattern, as the left finder reads them. The last two elements are one module each.
@@ -164,30 +164,30 @@ internal static class DataBarEncoder
     /// <summary>
     /// Gets the first symbol character value of each group: groups 0 to 4 are the outside characters and groups 5 to 8 the inside characters.
     /// </summary>
-    private static ReadOnlySpan<int> GroupSum => [0, 161, 961, 2015, 2715, 0, 336, 1036, 1516];
+    public static ReadOnlySpan<int> GroupSum => [0, 161, 961, 2015, 2715, 0, 336, 1036, 1516];
 
     /// <summary>
     /// Gets the number of even set combinations of an outside group, and of odd set combinations of an inside group. A value within a group splits into the two
     /// set values by this number.
     /// </summary>
-    private static ReadOnlySpan<int> Combinations => [1, 10, 34, 70, 126, 4, 20, 48, 81];
+    public static ReadOnlySpan<int> Combinations => [1, 10, 34, 70, 126, 4, 20, 48, 81];
 
     /// <summary>
     /// Gets the module count of the odd set of each group. The even set takes the rest of the 16 modules of an outside character or the 15 modules of an inside
     /// character.
     /// </summary>
-    private static ReadOnlySpan<int> OddModules => [12, 10, 8, 6, 4, 5, 7, 9, 11];
+    public static ReadOnlySpan<int> OddModules => [12, 10, 8, 6, 4, 5, 7, 9, 11];
 
     /// <summary>
     /// Gets the widest element of the odd set of each group. The widest element of the even set is nine less this.
     /// </summary>
-    private static ReadOnlySpan<int> OddWidest => [8, 6, 4, 3, 1, 2, 4, 6, 8];
+    public static ReadOnlySpan<int> OddWidest => [8, 6, 4, 3, 1, 2, 4, 6, 8];
 
     /// <summary>
     /// Gets the element widths of the nine finder patterns, five elements each, as the left finder reads them. The right finder reads the same widths in
     /// reverse.
     /// </summary>
-    private static ReadOnlySpan<byte> FinderPatterns =>
+    public static ReadOnlySpan<byte> FinderPatterns =>
     [
         3, 8, 2, 1, 1,
         3, 5, 5, 1, 1,
@@ -203,7 +203,7 @@ internal static class DataBarEncoder
     /// <summary>
     /// Gets the check weights, eight per symbol character in the order the characters are calculated.
     /// </summary>
-    private static ReadOnlySpan<byte> CheckWeights =>
+    public static ReadOnlySpan<byte> CheckWeights =>
     [
         1, 3, 9, 27, 2, 6, 18, 54,
         4, 12, 36, 29, 8, 24, 72, 58,

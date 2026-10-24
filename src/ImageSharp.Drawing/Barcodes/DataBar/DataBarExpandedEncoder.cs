@@ -55,7 +55,7 @@ internal static class DataBarExpandedEncoder
     /// <summary>
     /// The most symbol characters a symbol carries, the check character and 21 data characters. Section 5.5.2.3.1: "from 4 to 22 symbol characters".
     /// </summary>
-    private const int MaximumSymbolCharacters = 22;
+    public const int MaximumSymbolCharacters = 22;
 
     /// <summary>
     /// The most data characters a symbol carries, the symbol characters after the check character.
@@ -65,12 +65,12 @@ internal static class DataBarExpandedEncoder
     /// <summary>
     /// The number of data bits one data character carries.
     /// </summary>
-    private const int BitsPerSymbolCharacter = 12;
+    public const int BitsPerSymbolCharacter = 12;
 
     /// <summary>
     /// The number of modules of a symbol character.
     /// </summary>
-    private const int CharacterModules = 17;
+    public const int CharacterModules = 17;
 
     /// <summary>
     /// The number of modules of a finder pattern.
@@ -96,7 +96,7 @@ internal static class DataBarExpandedEncoder
     /// <summary>
     /// The fewest symbol characters a symbol carries. Section 5.5.2.3.1: "from 4 to 22 symbol characters".
     /// </summary>
-    private const int MinimumSymbolCharacters = 4;
+    public const int MinimumSymbolCharacters = 4;
 
     /// <summary>
     /// The first module of the first finder pattern of a row, after the guard pattern and the first symbol character.
@@ -121,7 +121,7 @@ internal static class DataBarExpandedEncoder
     /// <summary>
     /// The modulus of the check value.
     /// </summary>
-    private const int CheckModulus = 211;
+    public const int CheckModulus = 211;
 
     /// <summary>
     /// The encodation methods, which the encodation method field after the linkage bit selects. Each member names the bits of its field.
@@ -193,33 +193,33 @@ internal static class DataBarExpandedEncoder
     /// <summary>
     /// Gets the punctuation characters ISO/IEC 646 mode encodes, in the order of their values from 232.
     /// </summary>
-    private static ReadOnlySpan<char> Iso646Punctuation => "!\"%&'()*+,-./:;<=>?_ ";
+    public static ReadOnlySpan<char> Iso646Punctuation => "!\"%&'()*+,-./:;<=>?_ ";
 
     /// <summary>
     /// Gets the first symbol character value of each group.
     /// </summary>
-    private static ReadOnlySpan<int> GroupSum => [0, 348, 1388, 2948, 3988];
+    public static ReadOnlySpan<int> GroupSum => [0, 348, 1388, 2948, 3988];
 
     /// <summary>
     /// Gets the number of even set combinations of each group. A value within a group splits into the odd and the even set value by this number.
     /// </summary>
-    private static ReadOnlySpan<byte> EvenCombinations => [4, 20, 52, 104, 204];
+    public static ReadOnlySpan<byte> EvenCombinations => [4, 20, 52, 104, 204];
 
     /// <summary>
     /// Gets the module count of the odd set of each group. The even set takes the rest of the 17 modules.
     /// </summary>
-    private static ReadOnlySpan<byte> OddModules => [12, 10, 8, 6, 4];
+    public static ReadOnlySpan<byte> OddModules => [12, 10, 8, 6, 4];
 
     /// <summary>
     /// Gets the widest element of the odd set of each group. The widest element of the even set is nine less this.
     /// </summary>
-    private static ReadOnlySpan<byte> OddWidest => [7, 5, 4, 3, 1];
+    public static ReadOnlySpan<byte> OddWidest => [7, 5, 4, 3, 1];
 
     /// <summary>
     /// Gets the element widths of the twelve finder patterns, five each: A1, A2, B1, B2, C1, C2, D1, D2, E1, E2, F1 and F2. A version 2 finder is its version 1
     /// finder reversed.
     /// </summary>
-    private static ReadOnlySpan<byte> FinderWidths =>
+    public static ReadOnlySpan<byte> FinderWidths =>
     [
         1, 8, 4, 1, 1,
         1, 1, 4, 8, 1,
@@ -239,7 +239,7 @@ internal static class DataBarExpandedEncoder
     /// Gets the finder pattern sequences, one per symbol length. The sequence of a symbol with 2r + 3 or 2r + 4 symbol characters has r + 2 finders and starts
     /// at r (r + 3) / 2.
     /// </summary>
-    private static ReadOnlySpan<byte> FinderSequences =>
+    public static ReadOnlySpan<byte> FinderSequences =>
     [
         0, 1,
         0, 3, 2,
@@ -257,7 +257,7 @@ internal static class DataBarExpandedEncoder
     /// Gets the check weights, 8 for each side of each finder pattern: the character to its left and the character to its right, in the element order the
     /// symbol carries them. The check character to the left of the first finder carries no weight.
     /// </summary>
-    private static ReadOnlySpan<byte> CheckWeights =>
+    public static ReadOnlySpan<byte> CheckWeights =>
     [
         0, 0, 0, 0, 0, 0, 0, 0,
         77, 96, 32, 81, 27, 9, 3, 1,
@@ -562,7 +562,7 @@ internal static class DataBarExpandedEncoder
     /// </summary>
     /// <param name="symbolCharacters">The number of symbol characters.</param>
     /// <returns>The finder patterns, an index into <see cref="FinderWidths"/> each.</returns>
-    private static ReadOnlySpan<byte> Finders(int symbolCharacters)
+    public static ReadOnlySpan<byte> Finders(int symbolCharacters)
     {
         int r = (symbolCharacters - 3) / 2;
         return FinderSequences.Slice(r * (r + 3) / 2, r + 2);

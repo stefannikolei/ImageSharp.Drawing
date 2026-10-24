@@ -76,6 +76,62 @@ internal static class DataBarWidths
     }
 
     /// <summary>
+    /// Returns the value that a set of element widths encodes, the inverse of <see cref="Calculate"/>: for each element, the combinations of every narrower
+    /// width it could take come before its own width.
+    /// </summary>
+    /// <param name="widths">The element widths.</param>
+    /// <param name="maxWidth">The widest element the set allows.</param>
+    /// <param name="noNarrow">Whether the combinations without a one module element are excluded.</param>
+    /// <returns>The value.</returns>
+    public static int Value(ReadOnlySpan<int> widths, int maxWidth, bool noNarrow)
+    {
+        int elements = widths.Length;
+        int modules = 0;
+        foreach (int width in widths)
+        {
+            modules += width;
+        }
+
+        int value = 0;
+        int narrowMask = 0;
+        for (int bar = 0; bar < elements - 1; bar++)
+        {
+            int elementWidth = 1;
+            narrowMask |= 1 << bar;
+            for (; elementWidth < widths[bar]; elementWidth++, narrowMask &= ~(1 << bar))
+            {
+                // The same counts Calculate subtracts from the value as it widens the element.
+                int subValue = Combinations(modules - elementWidth - 1, elements - bar - 2);
+                if (noNarrow && narrowMask == 0 && modules - elementWidth - (elements - bar - 1) >= elements - bar - 1)
+                {
+                    subValue -= Combinations(modules - elementWidth - (elements - bar), elements - bar - 2);
+                }
+
+                if (elements - bar - 1 > 1)
+                {
+                    int lessValue = 0;
+                    for (int widest = modules - elementWidth - (elements - bar - 2); widest > maxWidth; widest--)
+                    {
+                        lessValue += Combinations(modules - elementWidth - widest - 1, elements - bar - 3);
+                    }
+
+                    subValue -= lessValue * (elements - 1 - bar);
+                }
+                else if (modules - elementWidth > maxWidth)
+                {
+                    subValue--;
+                }
+
+                value += subValue;
+            }
+
+            modules -= elementWidth;
+        }
+
+        return value;
+    }
+
+    /// <summary>
     /// Returns the number of combinations of r items from n, n! / (r! (n - r)!), and 1 when r exceeds n. The product runs down from n and divides by the
     /// smaller factorial as it goes, so the intermediate values stay small and every division is exact.
     /// </summary>

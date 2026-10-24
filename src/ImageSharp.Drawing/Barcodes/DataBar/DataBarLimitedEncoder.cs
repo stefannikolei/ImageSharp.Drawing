@@ -39,17 +39,17 @@ internal static class DataBarLimitedEncoder
     /// <summary>
     /// The modulus that splits the data value into the left and right character values.
     /// </summary>
-    private const int CharacterModulus = 2013571;
+    public const int CharacterModulus = 2013571;
 
     /// <summary>
     /// The value a linked symbol adds to its data value.
     /// </summary>
-    private const long LinkedOffset = 2015133531096;
+    public const long LinkedOffset = 2015133531096;
 
     /// <summary>
     /// The modulus of the check value.
     /// </summary>
-    private const int CheckModulus = 89;
+    public const int CheckModulus = 89;
 
     /// <summary>
     /// The number of digits that the symbol encodes: the GTIN without its check digit.
@@ -64,7 +64,7 @@ internal static class DataBarLimitedEncoder
     /// <summary>
     /// The number of modules of a symbol character.
     /// </summary>
-    private const int CharacterModules = 26;
+    public const int CharacterModules = 26;
 
     /// <summary>
     /// The number of elements of the leading guard pattern, a narrow space and a narrow bar.
@@ -79,18 +79,18 @@ internal static class DataBarLimitedEncoder
     /// <summary>
     /// The number of modules of each of the two sets of the check character.
     /// </summary>
-    private const int CheckSetModules = 8;
+    public const int CheckSetModules = 8;
 
     /// <summary>
     /// The widest element of a set of the check character, in modules.
     /// </summary>
-    private const int CheckSetWidest = 3;
+    public const int CheckSetWidest = 3;
 
     /// <summary>
     /// The number of patterns of one set of the check character, <see cref="CheckSetElements"/> elements over <see cref="CheckSetModules"/> modules with no
     /// element wider than <see cref="CheckSetWidest"/>.
     /// </summary>
-    private const int CheckSetPatterns = 21;
+    public const int CheckSetPatterns = 21;
 
     /// <summary>
     /// The width in modules of the space that closes the symbol. Section 5.5.2.2: "ending with a 5X space".
@@ -100,27 +100,27 @@ internal static class DataBarLimitedEncoder
     /// <summary>
     /// Gets the first character value of each group.
     /// </summary>
-    private static ReadOnlySpan<int> GroupSum => [0, 183064, 820064, 1000776, 1491021, 1979845, 1996939];
+    public static ReadOnlySpan<int> GroupSum => [0, 183064, 820064, 1000776, 1491021, 1979845, 1996939];
 
     /// <summary>
     /// Gets the number of even set combinations of each group. A value within a group splits into the odd and the even set value by this number.
     /// </summary>
-    private static ReadOnlySpan<int> EvenCombinations => [28, 728, 6454, 203, 2408, 1, 16632];
+    public static ReadOnlySpan<int> EvenCombinations => [28, 728, 6454, 203, 2408, 1, 16632];
 
     /// <summary>
     /// Gets the module count of the odd set of each group. The even set takes the rest of the 26 modules.
     /// </summary>
-    private static ReadOnlySpan<byte> OddModules => [17, 13, 9, 15, 11, 19, 7];
+    public static ReadOnlySpan<byte> OddModules => [17, 13, 9, 15, 11, 19, 7];
 
     /// <summary>
     /// Gets the widest element of the odd set of each group. The widest element of the even set is nine less this.
     /// </summary>
-    private static ReadOnlySpan<byte> OddWidest => [6, 5, 3, 5, 4, 8, 1];
+    public static ReadOnlySpan<byte> OddWidest => [6, 5, 3, 5, 4, 8, 1];
 
     /// <summary>
     /// Gets the check weights, 14 for the left character and 14 for the right.
     /// </summary>
-    private static ReadOnlySpan<byte> CheckWeights =>
+    public static ReadOnlySpan<byte> CheckWeights =>
     [
         1, 3, 9, 27, 81, 65, 17, 51, 64, 14, 42, 37, 22, 66,
         20, 60, 2, 6, 18, 54, 73, 41, 34, 13, 39, 28, 84, 74
@@ -130,7 +130,7 @@ internal static class DataBarLimitedEncoder
     /// Gets the check character pattern of each check value, an index into the 21 x 21 patterns of two sets of six elements over eight modules with no element
     /// wider than three. The quotient by 21 selects the widths of the first set and the remainder those of the second.
     /// </summary>
-    private static ReadOnlySpan<ushort> CheckSequence =>
+    public static ReadOnlySpan<ushort> CheckSequence =>
     [
         0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22,
         23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43,

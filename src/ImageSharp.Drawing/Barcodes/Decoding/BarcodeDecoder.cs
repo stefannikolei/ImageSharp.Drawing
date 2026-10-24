@@ -36,6 +36,9 @@ public static class BarcodeDecoder
         new PosiCodeReader(),
         new PharmacodeReader(),
         new FacingIdentificationMarkReader(),
+        new DataBarReader(),
+        new DataBarLimitedReader(),
+        new DataBarExpandedReader(),
     ];
 
     /// <summary>

@@ -10,6 +10,7 @@ internal sealed class DecodeContext
 {
     private readonly List<DecodedBarcode> results;
     private BitImage? turned;
+    private Dictionary<Type, object>? states;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="DecodeContext"/> class.
@@ -57,6 +58,25 @@ internal sealed class DecodeContext
     /// Gets the number of symbols found so far.
     /// </summary>
     public int ResultCount => this.results.Count;
+
+    /// <summary>
+    /// Returns the state of a reader for this decode, made on first use. A reader is shared by every decode, so a reader that joins what it reads on several
+    /// scan lines, such as the rows of a stacked GS1 DataBar symbol, keeps that state here.
+    /// </summary>
+    /// <typeparam name="T">The type of the state.</typeparam>
+    /// <returns>The state.</returns>
+    public T State<T>()
+        where T : class, new()
+    {
+        this.states ??= [];
+        if (!this.states.TryGetValue(typeof(T), out object? state))
+        {
+            state = new T();
+            this.states.Add(typeof(T), state);
+        }
+
+        return (T)state;
+    }
 
     /// <summary>
     /// Returns a value indicating whether the options name any of the families.
