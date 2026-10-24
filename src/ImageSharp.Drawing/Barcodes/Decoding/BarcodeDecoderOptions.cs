@@ -40,4 +40,11 @@ public sealed class BarcodeDecoderOptions
     /// X. A Telepen symbol does not mark the mode it carries, so the options name it. The default is <see langword="false"/>, the ASCII mode.
     /// </summary>
     public bool TelepenNumeric { get; set; }
+
+    /// <summary>
+    /// Gets or sets the encoding table of the customer information field of an Australia Post barcode. The barcode does not mark the table it uses, so the
+    /// options name it. The default is <see cref="AustraliaPostEncodingTable.Character"/>, the table <see cref="AustraliaPostSymbology"/> encodes with by
+    /// default.
+    /// </summary>
+    public AustraliaPostEncodingTable AustraliaPostCustomerTable { get; set; } = AustraliaPostEncodingTable.Character;
 }

@@ -28,7 +28,7 @@ internal static class IntelligentMailEncoder
     /// <summary>
     /// The number of entries in the table of characters with five bits set, Table 19.
     /// </summary>
-    private const int FiveOf13Length = 1287;
+    public const int FiveOf13Length = 1287;
 
     /// <summary>
     /// The number of entries in the table of characters with two bits set, Table 20.
@@ -43,7 +43,7 @@ internal static class IntelligentMailEncoder
     /// <summary>
     /// The number of bits of the frame check sequence, section 2.2.2.
     /// </summary>
-    private const int FrameCheckBits = 11;
+    public const int FrameCheckBits = 11;
 
     /// <summary>
     /// The mask of the bits of the frame check sequence.
@@ -53,27 +53,27 @@ internal static class IntelligentMailEncoder
     /// <summary>
     /// The most significant bit of the frame check sequence.
     /// </summary>
-    private const int FrameCheckTopBit = 1 << (FrameCheckBits - 1);
+    public const int FrameCheckTopBit = 1 << (FrameCheckBits - 1);
 
     /// <summary>
     /// The radix of the rightmost codeword J, section 2.2.3.
     /// </summary>
-    private const uint CodewordJRadix = 636;
+    public const uint CodewordJRadix = 636;
 
     /// <summary>
     /// The radix of the codewords I to B, section 2.2.3: one value for each character of Table 19 and Table 20.
     /// </summary>
-    private const uint CodewordRadix = FiveOf13Length + TwoOf13Length;
+    public const uint CodewordRadix = FiveOf13Length + TwoOf13Length;
 
     /// <summary>
     /// The value that codeword A gains when the most significant bit of the frame check sequence is set, section 2.2.4.
     /// </summary>
-    private const int CodewordAOffset = 659;
+    public const int CodewordAOffset = 659;
 
     /// <summary>
     /// The mask of the 13 bits of a character, section 2.2.5.
     /// </summary>
-    private const int CharacterMask = (1 << 13) - 1;
+    public const int CharacterMask = (1 << 13) - 1;
 
     /// <summary>
     /// The dimensions of Figure 6, which gives every vertical dimension as a minimum and a maximum from the centerline:
@@ -117,7 +117,7 @@ internal static class IntelligentMailEncoder
     /// them: every such 13-bit value is visited in ascending order, a value and its bit reversal fill the next two entries from the start, and a value that is
     /// its own reversal fills the next entry from the end.
     /// </summary>
-    private static ReadOnlySpan<ushort> FiveOf13 =>
+    public static ReadOnlySpan<ushort> FiveOf13 =>
     [
         31, 7936, 47, 7808, 55, 7552, 59, 7040, 61, 6016, 62, 3968, 79, 7744, 87, 7488, 91, 6976, 93, 5952, 94, 3904, 103, 7360, 107,
         6848, 109, 5824, 110, 3776, 115, 6592, 117, 5568, 118, 3520, 121, 5056, 122, 3008, 124, 1984, 143, 7712, 151, 7456, 155, 6944, 157, 5920,
@@ -177,7 +177,7 @@ internal static class IntelligentMailEncoder
     /// Gets Table 20, the characters with two of their 13 bits set, in the order of the code of Table 18. A codeword of <see cref="FiveOf13Length"/> or more
     /// selects entry codeword minus <see cref="FiveOf13Length"/>.
     /// </summary>
-    private static ReadOnlySpan<ushort> TwoOf13 =>
+    public static ReadOnlySpan<ushort> TwoOf13 =>
     [
         3, 6144, 5, 5120, 6, 3072, 9, 4608, 10, 2560, 12, 1536, 17, 4352, 18, 2304, 20, 1280, 24, 768, 33, 4224, 34, 2176, 36,
         1152, 40, 640, 48, 384, 65, 4160, 66, 2112, 68, 1088, 72, 576, 80, 320, 96, 192, 129, 4128, 130, 2080, 132, 1056, 136, 544,
@@ -189,7 +189,7 @@ internal static class IntelligentMailEncoder
     /// Gets Table 22, the bar to character mapping, as four values per bar from the left: the character and the bit of the descender, then the character and
     /// the bit of the ascender. Characters A to J are 0 to 9.
     /// </summary>
-    private static ReadOnlySpan<byte> BarMap =>
+    public static ReadOnlySpan<byte> BarMap =>
     [
         7, 2, 4, 3, 1, 10, 0, 0, 9, 12, 2, 8, 5, 5, 6, 11, 8, 9, 3, 1, 0, 1, 5, 12, 2, 5, 1, 8, 4, 4, 9, 11, 6, 3, 8, 10, 3, 9, 7, 6,
         5, 11, 1, 4, 8, 5, 2, 12, 9, 10, 0, 2, 7, 1, 6, 7, 3, 6, 4, 9, 0, 3, 8, 6, 6, 4, 2, 7, 1, 1, 9, 9, 7, 10, 5, 2, 4, 0, 3, 8,

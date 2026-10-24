@@ -14,12 +14,12 @@ internal static class FourStateMailmarkEncoder
     /// <summary>
     /// The length of the application string of a Mailmark barcode C.
     /// </summary>
-    private const int LengthC = 22;
+    public const int LengthC = 22;
 
     /// <summary>
     /// The length of the application string of a Mailmark barcode L.
     /// </summary>
-    private const int LengthL = 26;
+    public const int LengthL = 26;
 
     /// <summary>
     /// The number of bars in a group, which carries one six-bit extender group.
@@ -29,45 +29,45 @@ internal static class FourStateMailmarkEncoder
     /// <summary>
     /// The allowed characters of the Format field, Table 2, in value order.
     /// </summary>
-    private const string FormatCharacters = "01234";
+    public const string FormatCharacters = "01234";
 
     /// <summary>
     /// The allowed characters of the Version ID field, Table 2, in value order. Section 2.2.1: the encoding process "is valid only for cases in which the value
     /// of the Version ID External User Field is 1".
     /// </summary>
-    private const string VersionCharacters = "1234";
+    public const string VersionCharacters = "1234";
 
     /// <summary>
     /// The allowed characters of the Class field, Table 2, in value order.
     /// </summary>
-    private const string ClassCharacters = "0123456789ABCDE";
+    public const string ClassCharacters = "0123456789ABCDE";
 
     /// <summary>
     /// The limited alphabetic character type of a domestic sorting code, Table 3.
     /// </summary>
-    private const string LimitedAlphabetic = "ABDEFGHJLNPQRSTUWXYZ";
+    public const string LimitedAlphabetic = "ABDEFGHJLNPQRSTUWXYZ";
 
     /// <summary>
     /// The international designation of the destination field, section 2.2.2: "a nine-character string with five trailing spaces", whose internal user field
     /// value is zero.
     /// </summary>
-    private const string International = "XY11     ";
+    public const string International = "XY11     ";
 
     /// <summary>
     /// The length of the Destination Post Code plus DPS field.
     /// </summary>
-    private const int DestinationLength = 9;
+    public const int DestinationLength = 9;
 
     /// <summary>
     /// The Galois field of 32 values, section 2.2.5: the primitive polynomial x^5 + x^2 + 1.
     /// </summary>
-    private static readonly GaloisField Field = new(32, 37);
+    public static readonly GaloisField Field = new(32, 37);
 
     /// <summary>
     /// Gets Table 5, the symbols of the numbers with 32 values and of the check numbers: the six-bit values with an odd number of binary 1s, in ascending
     /// order.
     /// </summary>
-    private static ReadOnlySpan<byte> OddSymbols =>
+    public static ReadOnlySpan<byte> OddSymbols =>
     [
         1, 2, 4, 7, 8, 11, 13, 14, 16, 19, 21, 22, 25, 26, 28, 31,
         32, 35, 37, 38, 41, 42, 44, 47, 49, 50, 52, 55, 56, 59, 61, 62
@@ -76,7 +76,7 @@ internal static class FourStateMailmarkEncoder
     /// <summary>
     /// Gets Table 5, the symbols of the numbers with 30 values: the first 30 six-bit values with a non-zero, even number of binary 1s, in ascending order.
     /// </summary>
-    private static ReadOnlySpan<byte> EvenSymbols =>
+    public static ReadOnlySpan<byte> EvenSymbols =>
     [
         3, 5, 6, 9, 10, 12, 15, 17, 18, 20, 23, 24, 27, 29, 30,
         33, 34, 36, 39, 40, 43, 45, 46, 48, 51, 53, 54, 57, 58, 60
@@ -86,13 +86,13 @@ internal static class FourStateMailmarkEncoder
     /// Gets the six character patterns of a domestic sorting code, section 2.2.2, nine characters each in the order the steps test them: F for full alphabetic,
     /// N for numeric, L for limited alphabetic and S for a space.
     /// </summary>
-    private static ReadOnlySpan<byte> PostcodePatterns => "FNFNLLNLS"u8 + "FFNNLLNLS"u8 + "FFNNNLLNL"u8 + "FFNFNLLNL"u8 + "FNNLLNLSS"u8 + "FNNNLLNLS"u8;
+    public static ReadOnlySpan<byte> PostcodePatterns => "FNFNLLNLS"u8 + "FFNNLLNLS"u8 + "FFNNNLLNL"u8 + "FFNFNLLNL"u8 + "FNNLLNLSS"u8 + "FNNNLLNLS"u8;
 
     /// <summary>
     /// Gets the value the accumulator holds before the characters of each pattern are added: 1 for the first pattern, and the steps 6, 8, 10, 12 and 14 add
     /// 5,408,000,000, 5,408,000,000, 54,080,000,000, 140,608,000,000 and 208,000,000 before the next.
     /// </summary>
-    private static ReadOnlySpan<ulong> PostcodeOffsets =>
+    public static ReadOnlySpan<ulong> PostcodeOffsets =>
     [
         1UL,
         1UL + 5_408_000_000UL,
@@ -105,12 +105,12 @@ internal static class FourStateMailmarkEncoder
     /// <summary>
     /// Gets Table 6 of barcode C: the extender group of each data symbol D0 to D15 and check symbol C0 to C5.
     /// </summary>
-    private static ReadOnlySpan<byte> ExtenderGroupsC => [3, 5, 7, 11, 13, 14, 16, 17, 19, 0, 1, 2, 4, 6, 8, 9, 10, 12, 15, 18, 20, 21];
+    public static ReadOnlySpan<byte> ExtenderGroupsC => [3, 5, 7, 11, 13, 14, 16, 17, 19, 0, 1, 2, 4, 6, 8, 9, 10, 12, 15, 18, 20, 21];
 
     /// <summary>
     /// Gets Table 6 of barcode L: the extender group of each data symbol D0 to D18 and check symbol C0 to C6.
     /// </summary>
-    private static ReadOnlySpan<byte> ExtenderGroupsL => [2, 5, 7, 8, 13, 14, 15, 16, 21, 22, 23, 0, 1, 3, 4, 6, 9, 10, 11, 12, 17, 18, 19, 20, 24, 25];
+    public static ReadOnlySpan<byte> ExtenderGroupsL => [2, 5, 7, 8, 13, 14, 15, 16, 21, 22, 23, 0, 1, 3, 4, 6, 9, 10, 11, 12, 17, 18, 19, 20, 24, 25];
 
     /// <summary>
     /// Returns the number of bars of the barcode an application string selects by its length.

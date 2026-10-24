@@ -156,6 +156,91 @@ public class BarcodeDecoderTests
         => AssertReads(new FacingIdentificationMarkSymbology(), text, BarcodeFamily.FacingIdentificationMark, null, text);
 
     /// <summary>
+    /// A POSTNET or PLANET symbol decodes to its digits. The correction digit is symbol overhead.
+    /// </summary>
+    /// <param name="planet">Whether the symbol is PLANET.</param>
+    /// <param name="text">The digits.</param>
+    [Theory]
+    [InlineData(false, "12345")]
+    [InlineData(false, "123456789")]
+    [InlineData(false, "12345678901")]
+    [InlineData(true, "12345678901")]
+    [InlineData(true, "1234567890123")]
+    public void UspsPostal_RoundTrips(bool planet, string text)
+        => AssertReads(
+            planet ? new PlanetSymbology() : new PostnetSymbology(),
+            text,
+            planet ? BarcodeFamily.Planet : BarcodeFamily.Postnet,
+            null,
+            text);
+
+    /// <summary>
+    /// An Australia Post barcode decodes to its format control code, its sorting code and its customer information, in the table the options name. The
+    /// parity symbols are symbol overhead.
+    /// </summary>
+    /// <param name="table">The encoding table of the customer information.</param>
+    /// <param name="text">The text.</param>
+    [Theory]
+    [InlineData(AustraliaPostEncodingTable.Character, "1139549554")]
+    [InlineData(AustraliaPostEncodingTable.Character, "5954516251AB1")]
+    [InlineData(AustraliaPostEncodingTable.Character, "6254516251ABC123 #xy")]
+    [InlineData(AustraliaPostEncodingTable.Numeric, "591234567812345678")]
+    [InlineData(AustraliaPostEncodingTable.Numeric, "62123456781234567890123")]
+    [InlineData(AustraliaPostEncodingTable.Numeric, "62123456789999999999999")]
+    public void AustraliaPost_RoundTrips(AustraliaPostEncodingTable table, string text)
+    {
+        using Image<L8> image = DrawImage(new AustraliaPostSymbology(table), text, new BarcodeOptions());
+
+        BarcodeDecoderOptions options = new() { Families = BarcodeFamily.AustraliaPost, AustraliaPostCustomerTable = table };
+        DecodedBarcode result = Assert.Single(BarcodeDecoder.Decode(image, options));
+        Assert.Equal(text, result.Text);
+    }
+
+    /// <summary>
+    /// A Royal Mail 4-State Customer Code decodes to its characters; its check character, start bar and stop bar are symbol overhead. KIX is the same
+    /// characters alone.
+    /// </summary>
+    [Fact]
+    public void RoyalMailAndKix_RoundTrip()
+    {
+        AssertReads(new RoyalMailSymbology(), "SN34RD1A", BarcodeFamily.RoyalMail, null, "SN34RD1A");
+        AssertReads(new KixSymbology(), "1231FZ13XHS", BarcodeFamily.Kix, null, "1231FZ13XHS");
+    }
+
+    /// <summary>
+    /// A Japan Post barcode decodes to its digits, hyphens and letters. The filler codes and the check code are symbol overhead.
+    /// </summary>
+    /// <param name="text">The text.</param>
+    [Theory]
+    [InlineData("1234567")]
+    [InlineData("15400233-16-4-205")]
+    [InlineData("1060032AZ-K")]
+    public void JapanPost_RoundTrips(string text)
+        => AssertReads(new JapanPostSymbology(), text, BarcodeFamily.JapanPost, null, text);
+
+    /// <summary>
+    /// A 4-state Mailmark barcode C or L decodes to its application string.
+    /// </summary>
+    /// <param name="text">The application string.</param>
+    [Theory]
+    [InlineData("1100000000000XY11     ")]
+    [InlineData("21B2254800659JW5O9QA6Y")]
+    [InlineData("11000000000000000XY11     ")]
+    [InlineData("41038422416563762EF61AH8T ")]
+    public void Mailmark_RoundTrips(string text)
+        => AssertReads(new FourStateMailmarkSymbology(), text, BarcodeFamily.Mailmark, null, text);
+
+    /// <summary>
+    /// A DAFT symbol decodes to the letters of its bar states, and a two-track Pharmacode to the number it carries.
+    /// </summary>
+    [Fact]
+    public void DaftAndTwoTrackPharmacode_RoundTrip()
+    {
+        AssertReads(new DaftSymbology(), "FADTFADTTDAF", BarcodeFamily.Daft, null, "FADTFADTTDAF");
+        AssertReads(new TwoTrackPharmacodeSymbology(), "117480", BarcodeFamily.TwoTrackPharmacode, null, "117480");
+    }
+
+    /// <summary>
     /// A symbol reads upright, on either side and upside down.
     /// </summary>
     /// <param name="mode">The rotation of the image.</param>
@@ -201,6 +286,8 @@ public class BarcodeDecoderTests
         yield return (new Ean13Symbology(), "5901234123457", BarcodeFamily.Ean13, "5901234123457");
         yield return (new Code128Symbology(), "ABC-123", BarcodeFamily.Code128, "ABC-123");
         yield return (new Code93Symbology(), "CODE93", BarcodeFamily.Code93, "CODE93");
+        yield return (new RoyalMailSymbology(), "SN34RD1A", BarcodeFamily.RoyalMail, "SN34RD1A");
+        yield return (new IntelligentMailSymbology(), "0123456709498765432101234567891", BarcodeFamily.IntelligentMail, "0123456709498765432101234567891");
     }
 
     /// <summary>

@@ -42,6 +42,22 @@ public static class BarcodeDecoder
     ];
 
     /// <summary>
+    /// The height modulated readers.
+    /// </summary>
+    private static readonly HeightModulatedReader[] HeightModulatedReaders =
+    [
+        new UspsPostalReader(),
+        new IntelligentMailReader(),
+        new AustraliaPostReader(),
+        new RoyalMailReader(false),
+        new RoyalMailReader(true),
+        new JapanPostReader(),
+        new MailmarkReader(),
+        new TwoTrackPharmacodeReader(),
+        new DaftReader(),
+    ];
+
+    /// <summary>
     /// Finds and decodes the symbols of the default families in an image.
     /// </summary>
     /// <param name="image">The image.</param>
@@ -69,6 +85,7 @@ public static class BarcodeDecoder
         {
             BitImage bits = pass == 0 ? BitImage.Global(luminance) : BitImage.Hybrid(luminance);
             DecodeContext context = new(options, image, luminance, bits, results);
+            HeightModulatedScanner.Scan(context, Select(context, HeightModulatedReaders));
             LinearScanner.Scan(context, Select(context, LinearReaders));
         }
 
@@ -78,13 +95,15 @@ public static class BarcodeDecoder
     /// <summary>
     /// Returns the readers whose families the options name.
     /// </summary>
+    /// <typeparam name="T">The kind of reader.</typeparam>
     /// <param name="context">The decode.</param>
     /// <param name="readers">The readers.</param>
     /// <returns>The readers to use.</returns>
-    private static LinearReader[] Select(DecodeContext context, LinearReader[] readers)
+    private static T[] Select<T>(DecodeContext context, T[] readers)
+        where T : IFamilyReader
     {
         int count = 0;
-        foreach (LinearReader reader in readers)
+        foreach (T reader in readers)
         {
             if (context.Wants(reader.Families))
             {
@@ -92,9 +111,9 @@ public static class BarcodeDecoder
             }
         }
 
-        LinearReader[] selected = new LinearReader[count];
+        T[] selected = new T[count];
         count = 0;
-        foreach (LinearReader reader in readers)
+        foreach (T reader in readers)
         {
             if (context.Wants(reader.Families))
             {

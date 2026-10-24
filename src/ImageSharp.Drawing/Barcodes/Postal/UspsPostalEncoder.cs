@@ -87,7 +87,7 @@ internal static class UspsPostalEncoder
     /// Gets the bars of every digit, one bit per bar, most significant bar first: a set bit is a full bar in POSTNET and a half bar in PLANET. Section
     /// 708.4.2.1 of the Domestic Mail Manual: "A tall bar represents "1," and a short bar represents "0."" Each digit sets two of its five bars.
     /// </summary>
-    private static ReadOnlySpan<byte> Digits => [0b11000, 0b00011, 0b00101, 0b00110, 0b01001, 0b01010, 0b01100, 0b10001, 0b10010, 0b10100];
+    public static ReadOnlySpan<byte> Digits => [0b11000, 0b00011, 0b00101, 0b00110, 0b01001, 0b01010, 0b01100, 0b10001, 0b10010, 0b10100];
 
     /// <summary>
     /// Builds the symbol: a frame bar, five bars per digit, five for the correction digit and a frame bar, with full bars where a set bit stands in POSTNET and

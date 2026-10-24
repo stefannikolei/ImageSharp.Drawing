@@ -7,7 +7,7 @@ namespace SixLabors.ImageSharp.Drawing.Barcodes;
 /// Reads one or more linear families from the runs of one scan line. The runs alternate light and dark, starting with a light run, so the bars are at odd
 /// indices. A reader searches the runs from a start index for the start pattern of its symbology and decodes the characters that follow it.
 /// </summary>
-internal abstract class LinearReader
+internal abstract class LinearReader : IFamilyReader
 {
     /// <summary>
     /// Gets the families the reader returns.

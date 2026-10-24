@@ -21,24 +21,24 @@ internal static class AustraliaPostEncoder
     /// <summary>
     /// The number of digits in the format control code and the sorting code together.
     /// </summary>
-    private const int FixedDigits = 10;
+    public const int FixedDigits = 10;
 
     /// <summary>
     /// The number of error correction symbols, which the specification calls "the four parity check symbols of a (n,k) Reed Solomon code over Galois Field
     /// GF(64)".
     /// </summary>
-    private const int ParitySymbols = 4;
+    public const int ParitySymbols = 4;
 
     /// <summary>
     /// The number of bars from the start of the symbol to the customer information field: two start bars, four format control code bars and sixteen sorting
     /// code bars.
     /// </summary>
-    private const int CustomerFieldStart = 22;
+    public const int CustomerFieldStart = 22;
 
     /// <summary>
     /// The number of bars after the customer information field: twelve error correction bars and two stop bars.
     /// </summary>
-    private const int TrailingBars = 14;
+    public const int TrailingBars = 14;
 
     /// <summary>
     /// The number of bars of one Reed Solomon symbol and of one character of the C Encoding Table: three bars of base 4 values.
@@ -53,7 +53,7 @@ internal static class AustraliaPostEncoder
     /// <summary>
     /// The value of the filler bars that fill the rest of the customer information field: "filler bars (value 3 bars)".
     /// </summary>
-    private const byte FillerBar = 3;
+    public const byte FillerBar = 3;
 
     /// <summary>
     /// The dimensions that the specification gives as ranges, at the middle of each range:
@@ -92,18 +92,18 @@ internal static class AustraliaPostEncoder
     /// <summary>
     /// The field of the parity symbols: GF(64) with the primitive polynomial 1 + x + x^6.
     /// </summary>
-    private static readonly GaloisField Field = new(64, 67);
+    public static readonly GaloisField Field = new(64, 67);
 
     /// <summary>
     /// Gets the N Encoding Table: the two bar values of every digit, as one base 4 number, the first bar in the high digit.
     /// </summary>
-    private static ReadOnlySpan<byte> NumericTable => [0, 1, 2, 4, 5, 6, 8, 9, 10, 12];
+    public static ReadOnlySpan<byte> NumericTable => [0, 1, 2, 4, 5, 6, 8, 9, 10, 12];
 
     /// <summary>
     /// Gets the C Encoding Table: the three bar values of every character, in the order of <see cref="CharacterIndex"/>, as one base 4 number, the first bar
     /// in the high digit.
     /// </summary>
-    private static ReadOnlySpan<byte> CharacterTable =>
+    public static ReadOnlySpan<byte> CharacterTable =>
     [
         0, 1, 2, 4, 5, 6, 8, 9, 10, 16, 17, 18, 20, 21, 22, 24,
         25, 26, 32, 33, 34, 36, 37, 38, 40, 41, 42, 48, 49, 50, 52, 53,
@@ -259,7 +259,7 @@ internal static class AustraliaPostEncoder
     /// </summary>
     /// <param name="formatControlCode">The two digits of the format control code.</param>
     /// <returns>37 for the Standard Customer Barcode and the Null Customer Barcode, 52 for Customer Barcode 2, 67 for Customer Barcode 3.</returns>
-    private static int BarCount(ReadOnlySpan<char> formatControlCode) => formatControlCode switch
+    public static int BarCount(ReadOnlySpan<char> formatControlCode) => formatControlCode switch
     {
         "00" or "11" => 37,
         "59" => 52,
@@ -327,6 +327,20 @@ internal static class AustraliaPostEncoder
 
         return bar;
     }
+
+    /// <summary>
+    /// Returns the character of a row of the C Encoding Table, the inverse of <see cref="CharacterIndex"/>.
+    /// </summary>
+    /// <param name="index">The row, 0 to 63.</param>
+    /// <returns>The character.</returns>
+    public static char Character(int index) => index switch
+    {
+        < 26 => (char)('A' + index),
+        < 36 => (char)('0' + index - 26),
+        < 62 => (char)('a' + index - 36),
+        62 => ' ',
+        _ => '#',
+    };
 
     /// <summary>
     /// Returns the row of a character in the C Encoding Table, which lists the capital letters, the digits, the small letters, the space and the number sign.

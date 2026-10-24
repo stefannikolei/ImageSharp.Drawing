@@ -25,7 +25,7 @@ internal static class RoyalMailEncoder
     /// <summary>
     /// The characters the symbology encodes, in pattern order.
     /// </summary>
-    private const string Characters = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    public const string Characters = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
     /// <summary>
     /// The check characters in the order of the checksum calculation table, which the upper half value selects the row of and the lower half value the column
@@ -36,7 +36,7 @@ internal static class RoyalMailEncoder
     /// <summary>
     /// Gets the bar states of every character, four per character in the order of <see cref="Characters"/>, as <see cref="FourState"/> values.
     /// </summary>
-    private static ReadOnlySpan<byte> Patterns =>
+    public static ReadOnlySpan<byte> Patterns =>
     [
         0, 0, 3, 3, 0, 1, 2, 3, 0, 1, 3, 2, 1, 0, 2, 3, 1, 0, 3, 2, 1, 1, 2, 2, 0, 2, 1, 3, 0, 3, 0, 3, 0, 3, 1, 2,
         1, 2, 0, 3, 1, 2, 1, 2, 1, 3, 0, 2, 0, 2, 3, 1, 0, 3, 2, 1, 0, 3, 3, 0, 1, 2, 2, 1, 1, 2, 3, 0, 1, 3, 2, 0,

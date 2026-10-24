@@ -26,22 +26,22 @@ internal static class JapanPostEncoder
     /// <summary>
     /// The number of bars in one code.
     /// </summary>
-    private const int BarsPerCode = 3;
+    public const int BarsPerCode = 3;
 
     /// <summary>
     /// The value of the hyphen.
     /// </summary>
-    private const int Hyphen = 10;
+    public const int Hyphen = 10;
 
     /// <summary>
     /// The value of control code CC1; CC2 to CC8 follow it.
     /// </summary>
-    private const int ControlCode1 = 11;
+    public const int ControlCode1 = 11;
 
     /// <summary>
     /// The value of control code CC4, the filler.
     /// </summary>
-    private const int ControlCode4 = 14;
+    public const int ControlCode4 = 14;
 
     /// <summary>
     /// The modulus of the check calculation.
@@ -79,7 +79,7 @@ internal static class JapanPostEncoder
     /// <summary>
     /// Gets the bar states of every code value, three per code, as <see cref="FourState"/> values: the digits 0 to 9, the hyphen and CC1 to CC8.
     /// </summary>
-    private static ReadOnlySpan<byte> Patterns =>
+    public static ReadOnlySpan<byte> Patterns =>
     [
         3, 0, 0, 3, 3, 0, 3, 1, 2, 1, 3, 2, 3, 2, 1, 3, 0, 3, 1, 2, 3, 2, 3, 1, 2, 1, 3, 0, 3, 3,
         0, 3, 0,
