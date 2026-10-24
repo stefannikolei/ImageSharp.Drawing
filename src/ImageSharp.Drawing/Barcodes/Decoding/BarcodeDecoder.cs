@@ -58,6 +58,14 @@ public static class BarcodeDecoder
     ];
 
     /// <summary>
+    /// The stacked readers.
+    /// </summary>
+    private static readonly StackedReader[] StackedReaders =
+    [
+        new Pdf417Reader(),
+    ];
+
+    /// <summary>
     /// Finds and decodes the symbols of the default families in an image.
     /// </summary>
     /// <param name="image">The image.</param>
@@ -85,6 +93,15 @@ public static class BarcodeDecoder
         {
             BitImage bits = pass == 0 ? BitImage.Global(luminance) : BitImage.Hybrid(luminance);
             DecodeContext context = new(options, image, luminance, bits, results);
+            foreach (StackedReader reader in Select(context, StackedReaders))
+            {
+                reader.Read(context, bits, false);
+                if (options.TryHarder)
+                {
+                    reader.Read(context, context.TurnedBits, true);
+                }
+            }
+
             HeightModulatedScanner.Scan(context, Select(context, HeightModulatedReaders));
             LinearScanner.Scan(context, Select(context, LinearReaders));
         }

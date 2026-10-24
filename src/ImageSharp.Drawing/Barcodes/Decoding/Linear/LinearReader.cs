@@ -38,7 +38,7 @@ internal abstract class LinearReader : IFamilyReader
     /// <param name="index">The index of the light run.</param>
     /// <param name="minimum">The smallest width in pixels.</param>
     /// <returns><see langword="true"/> when the quiet zone is clear.</returns>
-    protected static bool IsQuiet(ReadOnlySpan<int> runs, int index, float minimum)
+    public static bool IsQuiet(ReadOnlySpan<int> runs, int index, float minimum)
         => index <= 0 || index >= runs.Length - 1 || runs[index] >= minimum;
 
     /// <summary>
@@ -48,7 +48,7 @@ internal abstract class LinearReader : IFamilyReader
     /// <param name="start">The index of the first run.</param>
     /// <param name="count">The number of runs.</param>
     /// <returns>The sum in pixels.</returns>
-    protected static int Sum(ReadOnlySpan<int> runs, int start, int count)
+    public static int Sum(ReadOnlySpan<int> runs, int start, int count)
     {
         int sum = 0;
         foreach (int run in runs.Slice(start, count))
@@ -67,7 +67,7 @@ internal abstract class LinearReader : IFamilyReader
     /// <param name="pattern">The module widths.</param>
     /// <param name="maximumIndividual">The largest difference of one run, in modules.</param>
     /// <returns>The variance.</returns>
-    protected static float Variance(ReadOnlySpan<int> runs, ReadOnlySpan<byte> pattern, float maximumIndividual)
+    public static float Variance(ReadOnlySpan<int> runs, ReadOnlySpan<byte> pattern, float maximumIndividual)
     {
         Span<int> widths = stackalloc int[pattern.Length];
         for (int i = 0; i < pattern.Length; i++)
@@ -86,7 +86,7 @@ internal abstract class LinearReader : IFamilyReader
     /// <param name="pattern">The module widths.</param>
     /// <param name="maximumIndividual">The largest difference of one run, in modules.</param>
     /// <returns>The variance.</returns>
-    protected static float Variance(ReadOnlySpan<int> runs, ReadOnlySpan<int> pattern, float maximumIndividual)
+    public static float Variance(ReadOnlySpan<int> runs, ReadOnlySpan<int> pattern, float maximumIndividual)
     {
         int total = 0;
         int patternTotal = 0;
@@ -124,7 +124,7 @@ internal abstract class LinearReader : IFamilyReader
     /// </summary>
     /// <param name="runs">The runs of the character.</param>
     /// <returns>A bit mask with bit i set when run i is wide, or -1 when the runs are all one width.</returns>
-    protected static int WideMask(ReadOnlySpan<int> runs)
+    public static int WideMask(ReadOnlySpan<int> runs)
     {
         int min = int.MaxValue;
         int max = 0;
@@ -160,7 +160,7 @@ internal abstract class LinearReader : IFamilyReader
     /// <param name="runs">The runs, at most 16.</param>
     /// <param name="wideCount">The number of wide elements.</param>
     /// <returns>A mask with bit i set when run i is wide, or -1.</returns>
-    protected static int WideElements(ReadOnlySpan<int> runs, int wideCount)
+    public static int WideElements(ReadOnlySpan<int> runs, int wideCount)
     {
         Span<int> sorted = stackalloc int[runs.Length];
         runs.CopyTo(sorted);

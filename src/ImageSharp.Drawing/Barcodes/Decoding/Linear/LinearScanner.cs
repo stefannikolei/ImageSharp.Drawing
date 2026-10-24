@@ -189,7 +189,7 @@ internal static class LinearScanner
     /// <param name="runs">The runs to write, at least the row width plus two.</param>
     /// <param name="starts">The starts to write.</param>
     /// <returns>The number of runs, an odd number.</returns>
-    private static int ToRuns(ReadOnlySpan<byte> row, Span<int> runs, Span<int> starts)
+    public static int ToRuns(ReadOnlySpan<byte> row, Span<int> runs, Span<int> starts)
     {
         int count = 0;
         int current = 0;
