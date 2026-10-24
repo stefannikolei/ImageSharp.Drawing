@@ -182,7 +182,7 @@ public sealed class UpcESymbology : BarcodeSymbology
     /// <param name="text">The leading zero followed by the six compressed digits.</param>
     /// <param name="destination">The buffer the eleven data digits are written into.</param>
     /// <returns>The eleven UPC-A data digits.</returns>
-    private static ReadOnlySpan<char> Expand(ReadOnlySpan<char> text, Span<char> destination)
+    internal static ReadOnlySpan<char> Expand(ReadOnlySpan<char> text, Span<char> destination)
     {
         char d1 = text[1];
         char d2 = text[2];

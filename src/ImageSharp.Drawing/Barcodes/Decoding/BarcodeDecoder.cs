@@ -13,7 +13,21 @@ public static class BarcodeDecoder
     /// <summary>
     /// The linear readers, in the order they try a scan line.
     /// </summary>
-    private static readonly LinearReader[] LinearReaders = [new Code128Reader()];
+    private static readonly LinearReader[] LinearReaders =
+    [
+        new EanUpcReader(),
+        new EanAddOnReader(),
+        new Code128Reader(),
+        new Code39Reader(),
+        new Code93Reader(),
+        new CodabarReader(),
+        new Interleaved2Of5Reader(),
+        new Code2Of5Reader(Code2Of5Variant.Industrial),
+        new Code2Of5Reader(Code2Of5Variant.Iata),
+        new Code2Of5Reader(Code2Of5Variant.Matrix),
+        new Code2Of5Reader(Code2Of5Variant.Coop),
+        new Code2Of5Reader(Code2Of5Variant.Datalogic),
+    ];
 
     /// <summary>
     /// Finds and decodes the symbols of the default families in an image.

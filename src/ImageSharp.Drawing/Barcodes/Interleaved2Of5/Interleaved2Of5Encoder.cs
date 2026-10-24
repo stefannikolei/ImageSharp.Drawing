@@ -84,7 +84,7 @@ internal static class Interleaved2Of5Encoder
     /// These are the patterns of Table 2 of AIM USS-I 2/5 and of Table 5-23 of the GS1 General Specifications, indexed by digit. Section 2.2 weights the
     /// positions 1, 2, 4, 7 and parity and gives every digit "exactly two non-zero weights".
     /// </summary>
-    private static ReadOnlySpan<byte> Patterns =>
+    public static ReadOnlySpan<byte> Patterns =>
     [
         0b00110, 0b10001, 0b01001, 0b11000, 0b00101,
         0b10100, 0b01100, 0b00011, 0b10010, 0b01010,

@@ -19,7 +19,7 @@ public sealed class Code93ExtendedSymbology : BarcodeSymbology
     /// Table 3, two characters for every ASCII value in order. A value encoded by a single symbol character has a space in front of it, and a space is never a
     /// shift character, so the first character of a pair says which of the two forms it is.
     /// </summary>
-    private const string Substitutions =
+    internal const string Substitutions =
         "bUaAaBaCaDaEaFaG" +
         "aHaIaJaKaLaMaNaO" +
         "aPaQaRaSaTaUaVaW" +

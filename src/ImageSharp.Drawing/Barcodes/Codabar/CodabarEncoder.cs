@@ -74,7 +74,7 @@ internal static class CodabarEncoder
     /// Gets the element widths of every character, one bit per element, most significant element first, in bar and space order: a set bit is a wide element and
     /// a clear bit a narrow one. The gap that follows the character is not in the pattern. The entries are in the order of <see cref="Characters"/>.
     /// </summary>
-    private static ReadOnlySpan<byte> Patterns =>
+    public static ReadOnlySpan<byte> Patterns =>
     [
         0x03, 0x06, 0x09, 0x60, 0x12, 0x42, 0x21, 0x24, 0x30, 0x48,
         0x0C, 0x18, 0x45, 0x51, 0x54, 0x15, 0x1A, 0x29, 0x0B, 0x0E,
@@ -101,6 +101,13 @@ internal static class CodabarEncoder
         'D' or 'E' => 19,
         _ => -1,
     };
+
+    /// <summary>
+    /// Returns the character of a value: its entry in <see cref="Characters"/>.
+    /// </summary>
+    /// <param name="value">The value, 0 to 19.</param>
+    /// <returns>The character.</returns>
+    public static char Character(int value) => Characters[value];
 
     /// <summary>
     /// Calculates the modulo 16 check character over a symbol. Annex A.3 of BS EN 798 leaves the check character to the application. The values of the start

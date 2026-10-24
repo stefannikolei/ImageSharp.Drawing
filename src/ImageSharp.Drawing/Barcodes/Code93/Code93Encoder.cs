@@ -82,7 +82,7 @@ internal static class Code93Encoder
     /// Gets the element widths of every symbol character in modules, six to a character, in bar and space order. These are the patterns of Table 2 of ANSI/AIM
     /// BC5-1995, indexed by character value.
     /// </summary>
-    private static ReadOnlySpan<byte> Patterns =>
+    public static ReadOnlySpan<byte> Patterns =>
     [
         1, 3, 1, 1, 1, 2, 1, 1, 1, 2, 1, 3, 1, 1, 1, 3, 1, 2, 1, 1, 1, 4, 1, 1,
         1, 2, 1, 1, 1, 3, 1, 2, 1, 2, 1, 2, 1, 2, 1, 3, 1, 1, 1, 1, 1, 1, 1, 4,
@@ -184,7 +184,7 @@ internal static class Code93Encoder
     /// </summary>
     /// <param name="text">The symbol characters the checks cover.</param>
     /// <returns>The values of the first and second check characters.</returns>
-    private static (int First, int Second) CheckValues(ReadOnlySpan<char> text)
+    public static (int First, int Second) CheckValues(ReadOnlySpan<char> text)
     {
         int firstSum = 0;
         int secondSum = 0;

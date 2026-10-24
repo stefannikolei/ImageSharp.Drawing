@@ -184,7 +184,7 @@ internal static class EanUpcEncoder
     /// Section 5.2.1.2.1 of the GS1 General Specifications: "Symbol characters in number set A are odd parity characters." Every character starts with a
     /// space module and ends with a bar module.
     /// </summary>
-    private static ReadOnlySpan<byte> NumberSetA =>
+    public static ReadOnlySpan<byte> NumberSetA =>
     [
         0b0001101, 0b0011001, 0b0010011, 0b0111101, 0b0100011,
         0b0110001, 0b0101111, 0b0111011, 0b0110111, 0b0001011,

@@ -56,4 +56,11 @@ internal static class AlphanumericCharacterSet
     /// <param name="sum">The sum of the values of the characters the check character covers.</param>
     /// <returns>The check character.</returns>
     public static char CheckCharacter(int sum) => Characters[sum % Characters.Length];
+
+    /// <summary>
+    /// Returns the character of a value of Table A.1 of ISO/IEC 16388.
+    /// </summary>
+    /// <param name="value">The value, 0 to 42.</param>
+    /// <returns>The character.</returns>
+    public static char Character(int value) => Characters[value];
 }

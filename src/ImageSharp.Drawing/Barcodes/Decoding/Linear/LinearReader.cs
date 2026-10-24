@@ -61,6 +61,25 @@ internal abstract class LinearReader
     /// <param name="pattern">The module widths.</param>
     /// <param name="maximumIndividual">The largest difference of one run, in modules.</param>
     /// <returns>The variance.</returns>
+    protected static float Variance(ReadOnlySpan<int> runs, ReadOnlySpan<byte> pattern, float maximumIndividual)
+    {
+        Span<int> widths = stackalloc int[pattern.Length];
+        for (int i = 0; i < pattern.Length; i++)
+        {
+            widths[i] = pattern[i];
+        }
+
+        return Variance(runs, widths, maximumIndividual);
+    }
+
+    /// <summary>
+    /// Returns how far the runs are from a pattern of module widths, the runs scaled so that their total equals the total of the pattern. The result is the
+    /// sum of the differences over the total, in modules per module, or <see cref="float.MaxValue"/> when one run differs by more than the limit.
+    /// </summary>
+    /// <param name="runs">The runs in pixels.</param>
+    /// <param name="pattern">The module widths.</param>
+    /// <param name="maximumIndividual">The largest difference of one run, in modules.</param>
+    /// <returns>The variance.</returns>
     protected static float Variance(ReadOnlySpan<int> runs, ReadOnlySpan<int> pattern, float maximumIndividual)
     {
         int total = 0;
@@ -120,6 +139,37 @@ internal abstract class LinearReader
         for (int i = 0; i < runs.Length; i++)
         {
             if (runs[i] * 2 > threshold2)
+            {
+                mask |= 1 << i;
+            }
+        }
+
+        return mask;
+    }
+
+    /// <summary>
+    /// Classifies the runs of a character with a known number of wide elements: the widest that many are wide. The narrowest wide element must be clearly
+    /// wider than the widest narrow element, a ratio of more than 1.5.
+    /// </summary>
+    /// <param name="runs">The runs, at most 16.</param>
+    /// <param name="wideCount">The number of wide elements.</param>
+    /// <returns>A mask with bit i set when run i is wide, or -1.</returns>
+    protected static int WideElements(ReadOnlySpan<int> runs, int wideCount)
+    {
+        Span<int> sorted = stackalloc int[runs.Length];
+        runs.CopyTo(sorted);
+        sorted.Sort();
+        int maxNarrow = sorted[runs.Length - wideCount - 1];
+        int minWide = sorted[runs.Length - wideCount];
+        if (minWide * 2 <= maxNarrow * 3)
+        {
+            return -1;
+        }
+
+        int mask = 0;
+        for (int i = 0; i < runs.Length; i++)
+        {
+            if (runs[i] >= minWide)
             {
                 mask |= 1 << i;
             }

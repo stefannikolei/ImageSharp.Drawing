@@ -30,7 +30,7 @@ public sealed class Code32Symbology : BarcodeSymbology
     /// The base 32 characters in value order, from Table 1 of Allegato A. Section 3 gives the rule: "l'uso delle cifre da 0 a 9 e delle lettere dell'alfabeto
     /// inglese ad eccezione delle lettere A, E, I, O".
     /// </summary>
-    private const string Base32Characters = "0123456789BCDFGHJKLMNPQRSTUVWXYZ";
+    internal const string Base32Characters = "0123456789BCDFGHJKLMNPQRSTUVWXYZ";
 
     /// <summary>
     /// The letter that opens the printed line. Section 3 of Allegato A prints the code "preceduto dalla lettera A, avente funzione di identificatore di campo
@@ -41,13 +41,13 @@ public sealed class Code32Symbology : BarcodeSymbology
     /// <summary>
     /// The number of data digits, excluding the check digit.
     /// </summary>
-    private const int Digits = 8;
+    internal const int Digits = 8;
 
     /// <summary>
     /// The number of base 32 characters the symbol carries. Section 3: the numbering system "consente di rappresentare le nove cifre del codice con sei
     /// caratteri alfanumerici".
     /// </summary>
-    private const int Base32Length = 6;
+    internal const int Base32Length = 6;
 
     /// <summary>
     /// The X dimension in millimetres a symbol takes when the caller sets none. Allegato A: "lo spessore nominale delle barre e degli spazi stretti è di mm
@@ -85,22 +85,7 @@ public sealed class Code32Symbology : BarcodeSymbology
             throw new ArgumentException($"An AIC code starts with the digit zero; got '{text[0]}'.", nameof(text));
         }
 
-        // Section 3 doubles the second, fourth, sixth and eighth digits, and sums the quotient and the remainder of each product divided by ten. That sum joins
-        // the sum of the first, third, fifth and seventh digits, and the check digit is the remainder of the total divided by ten.
-        int sum = 0;
-        for (int i = 0; i < Digits; i++)
-        {
-            int value = text[i] - '0';
-            if ((i & 1) == 1)
-            {
-                value *= 2;
-                value = (value / 10) + (value % 10);
-            }
-
-            sum += value;
-        }
-
-        int check = sum % 10;
+        int check = CheckDigit(text[..Digits]);
         if (text.Length > Digits && text[Digits] - '0' != check)
         {
             throw new ArgumentException($"Incorrect AIC check digit: expected {check}, got {text[Digits]}.", nameof(text));
@@ -148,5 +133,30 @@ public sealed class Code32Symbology : BarcodeSymbology
 
         // The interpretation is the field identifier, then the nine digits of the code.
         Code39Encoder.BuildSymbol(encoded, null, [FieldIdentifier], printed, [], in layout, options, ref symbol);
+    }
+
+    /// <summary>
+    /// Calculates the check digit of the eight data digits of an AIC code. Section 3 doubles the second, fourth, sixth and eighth digits, and sums the
+    /// quotient and the remainder of each product divided by ten. That sum joins the sum of the first, third, fifth and seventh digits, and the check digit is
+    /// the remainder of the total divided by ten.
+    /// </summary>
+    /// <param name="digits">The eight data digits.</param>
+    /// <returns>The check digit.</returns>
+    internal static int CheckDigit(ReadOnlySpan<char> digits)
+    {
+        int sum = 0;
+        for (int i = 0; i < digits.Length; i++)
+        {
+            int value = digits[i] - '0';
+            if ((i & 1) == 1)
+            {
+                value *= 2;
+                value = (value / 10) + (value % 10);
+            }
+
+            sum += value;
+        }
+
+        return sum % 10;
     }
 }

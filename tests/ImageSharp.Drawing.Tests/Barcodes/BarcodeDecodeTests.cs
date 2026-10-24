@@ -29,7 +29,8 @@ public class BarcodeDecodeTests
     /// <summary>
     /// The families <see cref="BarcodeDecoder"/> reads so far.
     /// </summary>
-    private const BarcodeFamily ImplementedFamilies = BarcodeFamily.Code128;
+    private const BarcodeFamily ImplementedFamilies = BarcodeFamily.Ean13 | BarcodeFamily.Ean8 | BarcodeFamily.UpcA | BarcodeFamily.UpcE
+        | BarcodeFamily.Code128 | BarcodeFamily.Code39 | BarcodeFamily.Pzn | BarcodeFamily.Code93 | BarcodeFamily.Codabar | BarcodeFamily.Interleaved2Of5;
 
     /// <summary>
     /// Gets the resolutions at which a module of one point draws at 1 to 7 pixels. The module draws at a whole number of pixels, so these are all the
@@ -1114,7 +1115,7 @@ public class BarcodeDecodeTests
     /// <param name="width">The image width in pixels.</param>
     /// <param name="height">The image height in pixels.</param>
     /// <returns>The grey pixels, row by row.</returns>
-    private static byte[] Draw(BarcodeSymbology symbology, string text, BarcodeOptions options, out int width, out int height)
+    internal static byte[] Draw(BarcodeSymbology symbology, string text, BarcodeOptions options, out int width, out int height)
     {
         PointF origin = new(20, 20);
         RectangleF bounds = BarcodeMeasurer.MeasureRenderableBounds(symbology, options, origin, text);

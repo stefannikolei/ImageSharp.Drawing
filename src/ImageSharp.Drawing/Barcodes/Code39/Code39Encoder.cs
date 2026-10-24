@@ -68,7 +68,7 @@ internal static class Code39Encoder
     /// narrow one. The first nine bits are the pattern Table 1 of ISO/IEC 16388 gives in bar and space order, and the tenth is the inter-character gap, which
     /// section 4.4 c) gives a minimum width of one narrow element. The last entry is the start and stop character.
     /// </summary>
-    private static ReadOnlySpan<ushort> Patterns =>
+    public static ReadOnlySpan<ushort> Patterns =>
     [
         0x068, 0x242, 0x0C2, 0x2C0, 0x062, 0x260, 0x0E0, 0x04A,
         0x248, 0x0C8, 0x212, 0x092, 0x290, 0x032, 0x230, 0x0B0,

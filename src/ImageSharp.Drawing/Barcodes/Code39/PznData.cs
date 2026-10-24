@@ -82,6 +82,24 @@ internal static class PznData
     private const int FinalWeight = 7;
 
     /// <summary>
+    /// Calculates the check digit of the data digits of a Pharmazentralnummer. IFA: "The sum is formed across the products and divided by 11. The whole
+    /// number remainder is the check digit." The final data digit weighs seven, and each digit before it one less.
+    /// </summary>
+    /// <param name="digits">The data digits, six for a PZN7 or seven for a PZN8.</param>
+    /// <returns>The remainder, 0 to 10. IFA does not issue a number whose remainder is 10.</returns>
+    public static int CheckDigit(ReadOnlySpan<char> digits)
+    {
+        int sum = 0;
+        int weight = FinalWeight - digits.Length + 1;
+        for (int i = 0; i < digits.Length; i++)
+        {
+            sum += (digits[i] - '0') * (weight + i);
+        }
+
+        return sum % CheckModulus;
+    }
+
+    /// <summary>
     /// Encodes a Pharmazentralnummer of the given length into a Code 39 symbol.
     /// </summary>
     /// <param name="text"> The data digits on their own, in which case the check digit is calculated, or the data digits and the check digit, in which case the
@@ -96,15 +114,7 @@ internal static class PznData
 
         BarcodeSymbology.ValidateDigits(text);
 
-        // IFA: "The sum is formed across the products and divided by 11. The whole number remainder is the check digit."
-        int sum = 0;
-        int weight = FinalWeight - digits + 1;
-        for (int i = 0; i < digits; i++)
-        {
-            sum += (text[i] - '0') * (weight + i);
-        }
-
-        int check = sum % CheckModulus;
+        int check = CheckDigit(text[..digits]);
         if (check == 10)
         {
             // IFA: "If the remainder is the number 10, this digit sequence is not used as PZN."

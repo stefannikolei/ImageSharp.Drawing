@@ -75,6 +75,11 @@ internal ref struct ValueStringBuilder
     public ref char this[int index] => ref this.characters[index];
 
     /// <summary>
+    /// Removes every character written so far. The storage stays.
+    /// </summary>
+    public void Clear() => this.position = 0;
+
+    /// <summary>
     /// Appends a single character.
     /// </summary>
     /// <param name="value">The character to append.</param>

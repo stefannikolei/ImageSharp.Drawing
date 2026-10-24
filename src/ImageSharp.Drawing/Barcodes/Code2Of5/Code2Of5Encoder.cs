@@ -75,7 +75,7 @@ internal static class Code2Of5Encoder
     /// Matrix and Datalogic read them as a bar, a space, a bar, a space and a bar. The narrow spaces that separate the elements and the digits are not in the
     /// pattern.
     /// </summary>
-    private static ReadOnlySpan<byte> Patterns =>
+    public static ReadOnlySpan<byte> Patterns =>
     [
         0b00110, 0b10001, 0b01001, 0b11000, 0b00101,
         0b10100, 0b01100, 0b00011, 0b10010, 0b01010,
@@ -85,7 +85,7 @@ internal static class Code2Of5Encoder
     /// Gets the element widths of every digit of COOP 2 of 5, in the layout of <see cref="Patterns"/>. COOP assigns the same ten patterns to the digits in a
     /// different order.
     /// </summary>
-    private static ReadOnlySpan<byte> CoopPatterns =>
+    public static ReadOnlySpan<byte> CoopPatterns =>
     [
         0b11000, 0b00011, 0b00101, 0b00110, 0b01001,
         0b01010, 0b01100, 0b10001, 0b10010, 0b10100,
@@ -233,7 +233,7 @@ internal static class Code2Of5Encoder
     /// </summary>
     /// <param name="variant">The symbology.</param>
     /// <returns>The run widths of the start pattern.</returns>
-    private static ReadOnlySpan<byte> StartPattern(Code2Of5Variant variant) => variant switch
+    public static ReadOnlySpan<byte> StartPattern(Code2Of5Variant variant) => variant switch
     {
         Code2Of5Variant.Industrial => [3, 1, 3, 1, 1, 1],
         Code2Of5Variant.Matrix => [3, 1, 1, 1, 1, 1],
@@ -246,7 +246,7 @@ internal static class Code2Of5Encoder
     /// </summary>
     /// <param name="variant">The symbology.</param>
     /// <returns>The run widths of the stop pattern.</returns>
-    private static ReadOnlySpan<byte> StopPattern(Code2Of5Variant variant) => variant switch
+    public static ReadOnlySpan<byte> StopPattern(Code2Of5Variant variant) => variant switch
     {
         Code2Of5Variant.Industrial => [3, 1, 1, 1, 3],
         Code2Of5Variant.Matrix => [3, 1, 1, 1, 1],

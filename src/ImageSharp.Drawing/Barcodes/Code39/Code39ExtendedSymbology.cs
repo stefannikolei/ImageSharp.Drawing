@@ -26,7 +26,7 @@ public sealed class Code39ExtendedSymbology : BarcodeSymbology
     /// Table A.2, two characters for every ASCII value in order. A value encoded by a single symbol character has a space in front of it, which is never a
     /// prefix, so the first character of a pair says which of the two forms it is.
     /// </summary>
-    private const string Substitutions =
+    internal const string Substitutions =
         "%U$A$B$C$D$E$F$G" +
         "$H$I$J$K$L$M$N$O" +
         "$P$Q$R$S$T$U$V$W" +
