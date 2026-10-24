@@ -57,7 +57,7 @@ internal static class Code16KEncoder
     /// <summary>
     /// The modulus of the check characters, section 2.6.
     /// </summary>
-    private const int Modulus = 107;
+    public const int Modulus = 107;
 
     /// <summary>
     /// The pad character, section 2.3.5: "When it appears at the end of the symbol characters, just before the check characters, it represents no data."
@@ -98,7 +98,7 @@ internal static class Code16KEncoder
     /// <summary>
     /// The pattern of the value 106, the one symbol character Table 2 defines beyond the Code 128 set, packed as <see cref="Patterns"/> packs its patterns.
     /// </summary>
-    private const uint TripleShiftPattern = 0x211133;
+    public const uint TripleShiftPattern = 0x211133;
 
     /// <summary>
     /// The symbol characters a symbol carries beyond its data: the starting symbol character and the two check characters.
@@ -207,7 +207,7 @@ internal static class Code16KEncoder
     /// Gets the element widths of the symbol characters 0 to 105, the Code 128 patterns of Table 2, packed four bits per element, the first element in the
     /// highest bits: six elements each, three spaces and three bars of one to four modules.
     /// </summary>
-    private static ReadOnlySpan<uint> Patterns =>
+    public static ReadOnlySpan<uint> Patterns =>
     [
         0x212222, 0x222122, 0x222221, 0x121223, 0x121322, 0x131222, 0x122213, 0x122312,
         0x132212, 0x221213, 0x221312, 0x231212, 0x112232, 0x122132, 0x122231, 0x113222,
@@ -229,12 +229,12 @@ internal static class Code16KEncoder
     /// Gets the eight start patterns of Table 4, bar, space, bar and space, one nibble each. Table 5 gives the stop patterns the same widths with the bars and
     /// spaces exchanged.
     /// </summary>
-    private static ReadOnlySpan<ushort> StartPatterns => [0x3211, 0x2221, 0x2122, 0x1411, 0x1132, 0x1231, 0x1114, 0x3112];
+    public static ReadOnlySpan<ushort> StartPatterns => [0x3211, 0x2221, 0x2122, 0x1411, 0x1132, 0x1231, 0x1114, 0x3112];
 
     /// <summary>
     /// Gets the stop pattern value of every row, Table 6.
     /// </summary>
-    private static ReadOnlySpan<byte> RowStopValues => [0, 1, 2, 3, 4, 5, 6, 7, 4, 5, 6, 7, 0, 1, 2, 3];
+    public static ReadOnlySpan<byte> RowStopValues => [0, 1, 2, 3, 4, 5, 6, 7, 4, 5, 6, 7, 0, 1, 2, 3];
 
     /// <summary>
     /// Encodes text and builds the symbol.

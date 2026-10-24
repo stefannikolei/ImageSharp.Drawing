@@ -280,6 +280,23 @@ public class BarcodeDecoderTests
     }
 
     /// <summary>
+    /// A Code 16K symbol decodes to its data in every starting mode and code set, from two rows to sixteen.
+    /// </summary>
+    /// <param name="text">The data.</param>
+    [Theory]
+    [InlineData("CODE 16K")]
+    [InlineData("12345678")]
+    [InlineData("a1234567890")]
+    [InlineData("ab1234567890")]
+    [InlineData("Hello\tWorld\r\nControl\u0001and lower case 1234 and 123456 digits")]
+    [InlineData("The quick brown fox jumps over the lazy dog 0123456789 !\"#$%&'()*+")]
+    public void Code16K_RoundTrips(string text)
+    {
+        text = System.Text.RegularExpressions.Regex.Unescape(text);
+        AssertReads(new Code16KSymbology(), text, BarcodeFamily.Code16K, "]K0", text);
+    }
+
+    /// <summary>
     /// A symbol reads upright, on either side and upside down.
     /// </summary>
     /// <param name="mode">The rotation of the image.</param>
