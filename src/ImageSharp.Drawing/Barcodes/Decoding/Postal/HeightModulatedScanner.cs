@@ -176,6 +176,16 @@ internal static class HeightModulatedScanner
             bottom = Math.Max(bottom, bars[index].Bottom);
         }
 
+        // The band every bar crosses: from the lowest bar top to the highest bar bottom.
+        int bandTop = int.MinValue;
+        int bandBottom = int.MaxValue;
+        foreach (int index in row)
+        {
+            bandTop = Math.Max(bandTop, bars[index].Top);
+            bandBottom = Math.Min(bandBottom, bars[index].Bottom);
+        }
+
+        bool sharedBand = (bandBottom - bandTop + 1) * 10 >= bottom - top + 1;
         float tolerance = (bottom - top + 1) * ExtenderTolerance;
         Span<FourState> states = stackalloc FourState[row.Count];
         Span<FourState> flipped = stackalloc FourState[row.Count];
@@ -202,7 +212,7 @@ internal static class HeightModulatedScanner
                     break;
                 }
 
-                if (reader.Directional && turned)
+                if ((reader.Directional && turned) || (reader.SharedBand && !sharedBand))
                 {
                     break;
                 }

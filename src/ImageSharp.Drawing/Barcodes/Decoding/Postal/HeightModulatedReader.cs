@@ -21,6 +21,12 @@ internal abstract class HeightModulatedReader : IFamilyReader
     public virtual bool Directional => false;
 
     /// <summary>
+    /// Gets a value indicating whether every bar of a symbol crosses one band, the tracker of a 4-state symbol or the half bar of POSTNET. The scanner gives a
+    /// reader with this need only the rows whose bars share such a band.
+    /// </summary>
+    public virtual bool SharedBand => true;
+
+    /// <summary>
     /// Reads a symbol from the states of a row of bars.
     /// </summary>
     /// <param name="states">The bar states from the left.</param>

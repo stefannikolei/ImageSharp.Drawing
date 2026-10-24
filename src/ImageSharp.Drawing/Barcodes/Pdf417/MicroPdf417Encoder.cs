@@ -35,7 +35,7 @@ internal static class MicroPdf417Encoder
     /// <summary>
     /// The number of entries in each of the two row address pattern tables.
     /// </summary>
-    private const int AddressPatternCount = 52;
+    public const int AddressPatternCount = 52;
 
     /// <summary>
     /// The number of modules in a row address pattern.
@@ -51,7 +51,7 @@ internal static class MicroPdf417Encoder
     /// Gets the 34 symbol sizes in the order the encoder tries them, one <see cref="SymbolSize"/> of six values each: the data columns, the rows, the error
     /// correction codewords, and the first left, centre and right row address patterns. Only symbols of three or four columns carry a centre pattern.
     /// </summary>
-    private static ReadOnlySpan<byte> Sizes =>
+    public static ReadOnlySpan<byte> Sizes =>
     [
         1, 11, 7, 1, 0, 9,
         1, 14, 7, 8, 0, 8,
@@ -92,7 +92,7 @@ internal static class MicroPdf417Encoder
     /// <summary>
     /// Gets the 52 left and right row address patterns, each the 10 modules of three bars and three spaces with the first module in bit 9.
     /// </summary>
-    private static ReadOnlySpan<short> SideAddressPatterns =>
+    public static ReadOnlySpan<short> SideAddressPatterns =>
     [
         802, 930, 946, 818, 882, 890, 826, 954, 922, 986, 970, 906, 778,
         794, 786, 914, 978, 982, 980, 916, 948, 932, 934, 942, 940, 936,
@@ -103,7 +103,7 @@ internal static class MicroPdf417Encoder
     /// <summary>
     /// Gets the 52 centre row address patterns, each the 10 modules of three bars and three spaces with the first module in bit 9.
     /// </summary>
-    private static ReadOnlySpan<short> CentreAddressPatterns =>
+    public static ReadOnlySpan<short> CentreAddressPatterns =>
     [
         718, 590, 622, 558, 550, 566, 534, 530, 538, 570, 562, 546, 610,
         626, 634, 762, 754, 758, 630, 628, 612, 614, 582, 578, 706, 738,

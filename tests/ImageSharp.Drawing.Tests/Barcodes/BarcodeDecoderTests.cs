@@ -241,6 +241,45 @@ public class BarcodeDecoderTests
     }
 
     /// <summary>
+    /// A PDF417 symbol decodes to its data in every compaction mode: text in the four sub-modes with their latches and shifts, runs of digits in Numeric
+    /// Compaction mode, and bytes in Byte Compaction mode, single and in groups of six, at every error correction level and column count.
+    /// </summary>
+    /// <param name="columns">The data columns.</param>
+    /// <param name="level">The error correction level.</param>
+    /// <param name="text">The data.</param>
+    [Theory]
+    [InlineData(3, 2, "Hello, World! (lower case and UPPER CASE; mixed 123 & punctuation: @#$%)")]
+    [InlineData(2, 0, "12345678901234567890123456789012345678901234567890123")]
+    [InlineData(4, 5, "\u0001\u0002\u0003\u00FF\u00FEbinary\u0000bytes\u0080")]
+    [InlineData(6, 8, "Gr\u00F6\u00DFe \u00C4\u00D6\u00DC 123456789012345 caf\u00E9")]
+    [InlineData(10, 4, "Tab\tCR\rLF\nend")]
+    public void Pdf417_RoundTripsEveryMode(int columns, int level, string text)
+    {
+        text = System.Text.RegularExpressions.Regex.Unescape(text);
+        AssertReads(new Pdf417Symbology(columns, level), text, BarcodeFamily.Pdf417, "]L2", text);
+        AssertReads(new CompactPdf417Symbology(columns, level), text, BarcodeFamily.Pdf417, "]L2", text);
+    }
+
+    /// <summary>
+    /// A MicroPDF417 symbol decodes at every column count, and a message in format 05 or 06 decodes to its header and trailer, which the macro codeword
+    /// stands for.
+    /// </summary>
+    /// <param name="columns">The data columns.</param>
+    /// <param name="text">The data.</param>
+    [Theory]
+    [InlineData(1, "MICRO")]
+    [InlineData(2, "MicroPDF417 two")]
+    [InlineData(3, "MicroPDF417 with three columns 0123456789")]
+    [InlineData(4, "MicroPDF417 with four columns and a little more data 0123456789 \u00E9")]
+    [InlineData(4, "[)>\u001E05\u001D1234567890123\u001E\u0004")]
+    [InlineData(4, "[)>\u001E06\u001D12345 ABC\u001E\u0004")]
+    public void MicroPdf417_RoundTripsEveryColumnCount(int columns, string text)
+    {
+        text = System.Text.RegularExpressions.Regex.Unescape(text);
+        AssertReads(new MicroPdf417Symbology(columns), text, BarcodeFamily.MicroPdf417, "]L2", text);
+    }
+
+    /// <summary>
     /// A symbol reads upright, on either side and upside down.
     /// </summary>
     /// <param name="mode">The rotation of the image.</param>
@@ -287,6 +326,8 @@ public class BarcodeDecoderTests
         yield return (new Code128Symbology(), "ABC-123", BarcodeFamily.Code128, "ABC-123");
         yield return (new Code93Symbology(), "CODE93", BarcodeFamily.Code93, "CODE93");
         yield return (new RoyalMailSymbology(), "SN34RD1A", BarcodeFamily.RoyalMail, "SN34RD1A");
+        yield return (new Pdf417Symbology(), "PDF417 rotated", BarcodeFamily.Pdf417, "PDF417 rotated");
+        yield return (new MicroPdf417Symbology(), "Micro rotated", BarcodeFamily.MicroPdf417, "Micro rotated");
         yield return (new IntelligentMailSymbology(), "0123456709498765432101234567891", BarcodeFamily.IntelligentMail, "0123456709498765432101234567891");
     }
 

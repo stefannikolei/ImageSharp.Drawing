@@ -63,6 +63,7 @@ public static class BarcodeDecoder
     private static readonly StackedReader[] StackedReaders =
     [
         new Pdf417Reader(),
+        new MicroPdf417Reader(),
     ];
 
     /// <summary>

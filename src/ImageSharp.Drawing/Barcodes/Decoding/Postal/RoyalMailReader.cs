@@ -43,8 +43,10 @@ internal sealed class RoyalMailReader : HeightModulatedReader
         }
 
         ReadOnlySpan<FourState> characters = royalMail ? states[1..^1] : states;
+
+        // A KIX symbol carries at least a postcode of six characters, and fewer bars than that read as KIX from too many other bars.
         int count = characters.Length / bars;
-        if (count < (royalMail ? 2 : 1))
+        if (count < (royalMail ? 2 : 6))
         {
             return false;
         }

@@ -19,6 +19,9 @@ internal sealed class TwoTrackPharmacodeReader : HeightModulatedReader
     public override bool Directional => true;
 
     /// <inheritdoc/>
+    public override bool SharedBand => false;
+
+    /// <inheritdoc/>
     public override bool TryRead(ReadOnlySpan<FourState> states, DecodeContext context, out BarcodeFamily family, out string text, out string identifier)
     {
         family = BarcodeFamily.TwoTrackPharmacode;
