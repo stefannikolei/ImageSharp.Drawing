@@ -40,7 +40,7 @@ internal static class DataBarExpandedBits
             }
         }
 
-        Gs1BitReader bits = new(packed, length);
+        BitStreamReader bits = new(packed, length);
         ValueStringBuilder builder = new(128);
         try
         {
@@ -102,7 +102,7 @@ internal static class DataBarExpandedBits
     /// <param name="bits">The bit stream after 01.</param>
     /// <param name="builder">The text.</param>
     /// <returns><see langword="true"/> when a general purpose field follows.</returns>
-    private static bool TryReadCompressed(ref Gs1BitReader bits, ref ValueStringBuilder builder)
+    private static bool TryReadCompressed(ref BitStreamReader bits, ref ValueStringBuilder builder)
     {
         if (bits.Read(1) == 0)
         {
@@ -208,7 +208,7 @@ internal static class DataBarExpandedBits
     /// <param name="builder">The text.</param>
     /// <param name="indicator">The indicator digit.</param>
     /// <returns><see langword="true"/> when the groups are three digit numbers.</returns>
-    private static bool AppendGtin(ref Gs1BitReader bits, ref ValueStringBuilder builder, int indicator)
+    private static bool AppendGtin(ref BitStreamReader bits, ref ValueStringBuilder builder, int indicator)
     {
         Span<char> gtin = stackalloc char[14];
         gtin[0] = (char)('0' + indicator);

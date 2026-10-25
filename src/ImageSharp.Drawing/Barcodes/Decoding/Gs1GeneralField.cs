@@ -45,7 +45,7 @@ internal static class Gs1GeneralField
     /// <param name="builder">The text.</param>
     /// <param name="mode">The mode the field starts in.</param>
     /// <returns><see langword="true"/> when the field is valid.</returns>
-    public static bool TryRead(ref Gs1BitReader bits, ref ValueStringBuilder builder, Mode mode)
+    public static bool TryRead(ref BitStreamReader bits, ref ValueStringBuilder builder, Mode mode)
     {
         while (true)
         {

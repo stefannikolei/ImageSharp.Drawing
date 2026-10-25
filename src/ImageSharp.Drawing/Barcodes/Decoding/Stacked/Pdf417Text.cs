@@ -113,7 +113,7 @@ internal static class Pdf417Text
     public static bool TryDecode(ReadOnlySpan<int> codewords, StartMode start, out string text)
     {
         text = string.Empty;
-        Segments segments = new();
+        DecodedText segments = new();
         int i = 0;
         int mode = start == StartMode.Text ? TextLatch : ByteLatch;
         SubMode subMode = SubMode.Alpha;
@@ -275,7 +275,7 @@ internal static class Pdf417Text
     /// <param name="subMode">The sub-mode, kept across runs.</param>
     /// <param name="segments">The text.</param>
     /// <returns><see langword="true"/> when the values are valid.</returns>
-    private static bool TryDecodeText(ReadOnlySpan<int> codewords, ref int i, ref SubMode subMode, Segments segments)
+    private static bool TryDecodeText(ReadOnlySpan<int> codewords, ref int i, ref SubMode subMode, DecodedText segments)
     {
         ReadOnlySpan<char> characters = TextCharacters;
         SubMode? shift = null;
@@ -341,7 +341,7 @@ internal static class Pdf417Text
     /// <param name="i">The index of the first codeword, moved past the run.</param>
     /// <param name="segments">The text.</param>
     /// <returns><see langword="true"/> when every group starts with the digit 1.</returns>
-    private static bool TryDecodeNumeric(ReadOnlySpan<int> codewords, ref int i, Segments segments)
+    private static bool TryDecodeNumeric(ReadOnlySpan<int> codewords, ref int i, DecodedText segments)
     {
         while (i < codewords.Length && codewords[i] < TextLatch)
         {
@@ -363,77 +363,5 @@ internal static class Pdf417Text
         }
 
         return true;
-    }
-
-    /// <summary>
-    /// The decoded data: text, and bytes that read in the character set of the current ECI when the text ends or the ECI changes.
-    /// </summary>
-    private sealed class Segments
-    {
-        private readonly StringBuilder text = new();
-        private readonly List<byte> bytes = [];
-        private int eci = -1;
-
-        /// <summary>
-        /// Gets the bytes that read in the character set of the current ECI when the text ends or the ECI changes.
-        /// </summary>
-        public List<byte> PendingBytes => this.bytes;
-
-        /// <summary>
-        /// Appends text.
-        /// </summary>
-        /// <param name="value">The text.</param>
-        public void AppendText(ReadOnlySpan<char> value)
-        {
-            this.Flush();
-            this.text.Append(value);
-        }
-
-        /// <summary>
-        /// Appends a character of Text Compaction mode.
-        /// </summary>
-        /// <param name="value">The character.</param>
-        public void AppendChar(char value)
-        {
-            this.Flush();
-            this.text.Append(value);
-        }
-
-        /// <summary>
-        /// Appends a byte.
-        /// </summary>
-        /// <param name="value">The byte.</param>
-        public void AppendByte(byte value) => this.bytes.Add(value);
-
-        /// <summary>
-        /// Sets the ECI the bytes after it read in.
-        /// </summary>
-        /// <param name="value">The ECI number.</param>
-        public void SetEci(int value)
-        {
-            this.Flush();
-            this.eci = value;
-        }
-
-        /// <inheritdoc/>
-        public override string ToString()
-        {
-            this.Flush();
-            return this.text.ToString();
-        }
-
-        /// <summary>
-        /// Converts the pending bytes to text.
-        /// </summary>
-        private void Flush()
-        {
-            if (this.bytes.Count == 0)
-            {
-                return;
-            }
-
-            this.text.Append(ByteText.Decode(System.Runtime.InteropServices.CollectionsMarshal.AsSpan(this.bytes), this.eci));
-            this.bytes.Clear();
-        }
     }
 }

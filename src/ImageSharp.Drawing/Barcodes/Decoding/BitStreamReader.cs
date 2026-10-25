@@ -4,21 +4,21 @@
 namespace SixLabors.ImageSharp.Drawing.Barcodes;
 
 /// <summary>
-/// Reads the bit stream of GS1 DataBar Expanded and of the GS1 Composite 2D components, packed eight bits to a byte, the first bit in the most significant bit
-/// of the first byte.
+/// Reads a bit stream packed eight bits to a byte, the first bit in the most significant bit of the first byte: the bit stream of GS1 DataBar Expanded and of
+/// the GS1 Composite 2D components, and the data codewords of the matrix symbologies.
 /// </summary>
-internal ref struct Gs1BitReader
+internal ref struct BitStreamReader
 {
     private readonly ReadOnlySpan<byte> bytes;
     private readonly int length;
     private int position;
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="Gs1BitReader"/> struct.
+    /// Initializes a new instance of the <see cref="BitStreamReader"/> struct.
     /// </summary>
     /// <param name="bytes">The packed bits.</param>
     /// <param name="length">The number of bits.</param>
-    public Gs1BitReader(ReadOnlySpan<byte> bytes, int length)
+    public BitStreamReader(ReadOnlySpan<byte> bytes, int length)
     {
         this.bytes = bytes;
         this.length = length;

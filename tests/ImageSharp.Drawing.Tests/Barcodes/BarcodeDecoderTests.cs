@@ -423,6 +423,63 @@ public class BarcodeDecoderTests
     }
 
     /// <summary>
+    /// A QR Code symbol decodes in every version group and at every error correction level, with the version information from version 7.
+    /// </summary>
+    /// <param name="version">The version.</param>
+    /// <param name="level">The error correction level.</param>
+    [Theory]
+    [InlineData(1, QrErrorCorrectionLevel.L)]
+    [InlineData(2, QrErrorCorrectionLevel.M)]
+    [InlineData(6, QrErrorCorrectionLevel.Q)]
+    [InlineData(7, QrErrorCorrectionLevel.H)]
+    [InlineData(10, QrErrorCorrectionLevel.M)]
+    [InlineData(27, QrErrorCorrectionLevel.Q)]
+    public void QrCode_RoundTripsEveryVersionGroup(int version, QrErrorCorrectionLevel level)
+        => AssertReads(new QrCodeSymbology(level, version), "QR 0123456789 abc", BarcodeFamily.QrCode, "]Q1", "QR 0123456789 abc");
+
+    /// <summary>
+    /// A GS1 QR Code symbol transmits its element strings with the symbology identifier ]Q3.
+    /// </summary>
+    [Fact]
+    public void Gs1QrCode_ReadsTheElementStrings()
+        => AssertReads(new Gs1QrCodeSymbology(), "(01)09521234543213(10)ABC123(21)XYZ789", BarcodeFamily.QrCode, "]Q3", "010952123454321310ABC123\u001D21XYZ789");
+
+    /// <summary>
+    /// A Micro QR Code symbol decodes in every version and at every level the version has.
+    /// </summary>
+    /// <param name="version">The version, 1 to 4 for M1 to M4.</param>
+    /// <param name="level">The error correction level.</param>
+    /// <param name="text">The data.</param>
+    [Theory]
+    [InlineData(1, QrErrorCorrectionLevel.L, "12345")]
+    [InlineData(2, QrErrorCorrectionLevel.L, "ABC12")]
+    [InlineData(2, QrErrorCorrectionLevel.M, "AB12")]
+    [InlineData(3, QrErrorCorrectionLevel.L, "Micro QR")]
+    [InlineData(3, QrErrorCorrectionLevel.M, "MICRO 1")]
+    [InlineData(4, QrErrorCorrectionLevel.L, "Micro QR M4 abc")]
+    [InlineData(4, QrErrorCorrectionLevel.M, "Micro QR 12345")]
+    [InlineData(4, QrErrorCorrectionLevel.Q, "MICRO 123")]
+    public void MicroQrCode_RoundTripsEveryVersion(int version, QrErrorCorrectionLevel level, string text)
+        => AssertReads(new MicroQrCodeSymbology(level, version), text, BarcodeFamily.MicroQrCode, "]Q1", text);
+
+    /// <summary>
+    /// A Rectangular Micro QR Code symbol decodes in every height and at both levels.
+    /// </summary>
+    /// <param name="version">The version.</param>
+    /// <param name="level">The error correction level.</param>
+    /// <param name="text">The data.</param>
+    [Theory]
+    [InlineData(RectangularMicroQrCodeVersion.R7x43, QrErrorCorrectionLevel.M, "1234567")]
+    [InlineData(RectangularMicroQrCodeVersion.R7x139, QrErrorCorrectionLevel.H, "rMQR 12")]
+    [InlineData(RectangularMicroQrCodeVersion.R9x77, QrErrorCorrectionLevel.M, "rMQR 12")]
+    [InlineData(RectangularMicroQrCodeVersion.R11x27, QrErrorCorrectionLevel.M, "RMQR")]
+    [InlineData(RectangularMicroQrCodeVersion.R13x99, QrErrorCorrectionLevel.H, "rMQR 12")]
+    [InlineData(RectangularMicroQrCodeVersion.R15x59, QrErrorCorrectionLevel.M, "rMQR 12")]
+    [InlineData(RectangularMicroQrCodeVersion.R17x139, QrErrorCorrectionLevel.H, "rMQR 12")]
+    public void RectangularMicroQrCode_RoundTripsEveryHeight(RectangularMicroQrCodeVersion version, QrErrorCorrectionLevel level, string text)
+        => AssertReads(new RectangularMicroQrCodeSymbology(level, version), text, BarcodeFamily.RectangularMicroQrCode, "]Q1", text);
+
+    /// <summary>
     /// A symbol reads upright, on either side and upside down.
     /// </summary>
     /// <param name="mode">The rotation of the image.</param>
@@ -476,6 +533,9 @@ public class BarcodeDecoderTests
         yield return (new CodablockFSymbology(), "Codablock F rotated", BarcodeFamily.CodablockF, "Codablock F rotated");
         yield return (new Gs1CompositeComponentSymbology(), "(21)A12345678", BarcodeFamily.Gs1CompositeComponent, "21A12345678");
         yield return (new Gs1CompositeComponentSymbology(Gs1CompositeComponent.CcB, 3), "(10)ABC123", BarcodeFamily.Gs1CompositeComponent, "10ABC123");
+        yield return (new QrCodeSymbology(), "QR rotated", BarcodeFamily.QrCode, "QR rotated");
+        yield return (new MicroQrCodeSymbology(), "Micro QR", BarcodeFamily.MicroQrCode, "Micro QR");
+        yield return (new RectangularMicroQrCodeSymbology(), "rMQR rotated", BarcodeFamily.RectangularMicroQrCode, "rMQR rotated");
         yield return (new IntelligentMailSymbology(), "0123456709498765432101234567891", BarcodeFamily.IntelligentMail, "0123456709498765432101234567891");
     }
 

@@ -71,6 +71,15 @@ public static class BarcodeDecoder
     ];
 
     /// <summary>
+    /// The matrix readers.
+    /// </summary>
+    private static readonly MatrixReader[] MatrixReaders =
+    [
+        new QrCodeReader(),
+        new MicroQrReader(),
+    ];
+
+    /// <summary>
     /// Finds and decodes the symbols of the default families in an image.
     /// </summary>
     /// <param name="image">The image.</param>
@@ -98,6 +107,11 @@ public static class BarcodeDecoder
         {
             BitImage bits = pass == 0 ? BitImage.Global(luminance) : BitImage.Hybrid(luminance);
             DecodeContext context = new(options, image, luminance, bits, results);
+            foreach (MatrixReader reader in Select(context, MatrixReaders))
+            {
+                reader.Read(context);
+            }
+
             foreach (StackedReader reader in Select(context, StackedReaders))
             {
                 reader.Read(context, bits, false);

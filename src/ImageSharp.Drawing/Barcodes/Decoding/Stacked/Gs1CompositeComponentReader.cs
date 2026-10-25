@@ -153,7 +153,7 @@ internal sealed class Gs1CompositeComponentReader : StackedReader
     private static bool TryDecode(ReadOnlySpan<byte> stream, int length, out string text)
     {
         text = string.Empty;
-        Gs1BitReader bits = new(stream, length);
+        BitStreamReader bits = new(stream, length);
         ValueStringBuilder builder = new(256);
         ValueStringBuilder field = new(256);
         try
@@ -205,7 +205,7 @@ internal sealed class Gs1CompositeComponentReader : StackedReader
     /// <param name="builder">The element strings.</param>
     /// <param name="field">The scratch for the general purpose field.</param>
     /// <returns><see langword="true"/> when the fields are valid.</returns>
-    private static bool TryReadDateAndLot(ref Gs1BitReader bits, ref ValueStringBuilder builder, ref ValueStringBuilder field)
+    private static bool TryReadDateAndLot(ref BitStreamReader bits, ref ValueStringBuilder builder, ref ValueStringBuilder field)
     {
         if (bits.Peek(2) == NoDate)
         {
@@ -257,7 +257,7 @@ internal sealed class Gs1CompositeComponentReader : StackedReader
     /// <param name="builder">The element strings.</param>
     /// <param name="field">The scratch for the general purpose field.</param>
     /// <returns><see langword="true"/> when the fields are valid.</returns>
-    private static bool TryReadAi90(ref Gs1BitReader bits, ref ValueStringBuilder builder, ref ValueStringBuilder field)
+    private static bool TryReadAi90(ref BitStreamReader bits, ref ValueStringBuilder builder, ref ValueStringBuilder field)
     {
         // Section 5.3.3: 0 for alphanumeric mode, 10 for numeric mode and 11 for alpha mode.
         Gs1GeneralField.Mode mode = bits.Read(1) == 0

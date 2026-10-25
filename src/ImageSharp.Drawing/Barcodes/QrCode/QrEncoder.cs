@@ -37,7 +37,7 @@ internal static class QrEncoder
     /// in length (Table 3), groups 3 to 6 are versions M1 to M4, and groups 7 to 38 are Rectangular Micro QR Code versions R7x43 to R17x139, each with
     /// indicators of its own length.
     /// </summary>
-    private const int GroupM1 = 3;
+    public const int GroupM1 = 3;
 
     /// <summary>
     /// The version group of Micro QR Code version M2.
@@ -47,22 +47,22 @@ internal static class QrEncoder
     /// <summary>
     /// The version group of Rectangular Micro QR Code version R7x43, the first of 32.
     /// </summary>
-    private const int GroupR7x43 = 7;
+    public const int GroupR7x43 = 7;
 
     /// <summary>
     /// The data mask pattern reference of Table 10 of ISO/IEC 18004 that every Rectangular Micro QR Code symbol uses: (i div 2 + j div 3) mod 2 = 0.
     /// </summary>
-    private const int RectangularMask = 4;
+    public const int RectangularMask = 4;
 
     /// <summary>
     /// The mask that the encoder XORs with the format information of a Rectangular Micro QR Code symbol, beside the finder pattern.
     /// </summary>
-    private const int RectangularFormatMaskLeft = 0x1FAB2;
+    public const int RectangularFormatMaskLeft = 0x1FAB2;
 
     /// <summary>
     /// The mask that the encoder XORs with the format information of a Rectangular Micro QR Code symbol, beside the finder sub-pattern.
     /// </summary>
-    private const int RectangularFormatMaskRight = 0x20A7B;
+    public const int RectangularFormatMaskRight = 0x20A7B;
 
     /// <summary>
     /// A count no run reaches. A mode change that needs it never happens.
@@ -87,27 +87,27 @@ internal static class QrEncoder
     /// <summary>
     /// The generator polynomial of the (15, 5) BCH code of the format information, Annex C: x^10 + x^8 + x^5 + x^4 + x^2 + x + 1.
     /// </summary>
-    private const int FormatGenerator = 0x537;
+    public const int FormatGenerator = 0x537;
 
     /// <summary>
     /// The generator polynomial of the (18, 6) Golay code of the version information, Annex D: x^12 + x^11 + x^10 + x^9 + x^8 + x^5 + x^2 + 1.
     /// </summary>
-    private const int VersionGenerator = 0x1F25;
+    public const int VersionGenerator = 0x1F25;
 
     /// <summary>
     /// The mask that the encoder XORs with the format information of a QR Code symbol, section 6.9.1.
     /// </summary>
-    private const int FormatMask = 0b101010000010010;
+    public const int FormatMask = 0b101010000010010;
 
     /// <summary>
     /// The mask that the encoder XORs with the format information of a Micro QR Code symbol, section 6.9.2.
     /// </summary>
-    private const int MicroFormatMask = 0b100010001000101;
+    public const int MicroFormatMask = 0b100010001000101;
 
     /// <summary>
     /// The field of the error correction, section 6.5.2: GF(2^8) with the primitive polynomial x^8 + x^4 + x^3 + x^2 + 1, 285 decimal.
     /// </summary>
-    private static readonly GaloisField Field = new(256, 285);
+    public static readonly GaloisField Field = new(256, 285);
 
     /// <summary>
     /// The symbol sizes, Micro QR Code versions M1 to M4, QR Code versions 1 to 40 and then Rectangular Micro QR Code versions R7x43 to R17x139. Each carries
@@ -242,7 +242,7 @@ internal static class QrEncoder
     /// Gets the length of the character count indicator of each version group for Numeric, Alphanumeric and Byte mode, Table 3, or 0 where the version does not
     /// have the mode. The rows after M4 are the Rectangular Micro QR Code versions R7x43 to R17x139.
     /// </summary>
-    private static ReadOnlySpan<byte> CountBits =>
+    public static ReadOnlySpan<byte> CountBits =>
     [
         10, 9, 8,
         12, 11, 16,
@@ -288,7 +288,7 @@ internal static class QrEncoder
     /// <summary>
     /// Gets the length of the mode indicator of each version group, Table 2. Every Rectangular Micro QR Code version has a 3-bit mode indicator.
     /// </summary>
-    private static ReadOnlySpan<byte> ModeBits =>
+    public static ReadOnlySpan<byte> ModeBits =>
     [
         4, 4, 4, 0, 1, 2, 3,
         3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3,
@@ -297,7 +297,7 @@ internal static class QrEncoder
     /// <summary>
     /// Gets the length of the terminator of each version group, Table 2. Every Rectangular Micro QR Code version has a 3-bit terminator.
     /// </summary>
-    private static ReadOnlySpan<byte> TerminatorBits =>
+    public static ReadOnlySpan<byte> TerminatorBits =>
     [
         4, 4, 4, 3, 5, 7, 9,
         3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3,
@@ -420,12 +420,12 @@ internal static class QrEncoder
     /// <summary>
     /// Gets the data mask pattern references of Table 10 a Micro QR Code symbol uses, in the order of its two bit references 00 to 11.
     /// </summary>
-    private static ReadOnlySpan<byte> MicroMasks => [1, 4, 6, 7];
+    public static ReadOnlySpan<byte> MicroMasks => [1, 4, 6, 7];
 
     /// <summary>
     /// Gets the symbol numbers of Table 13, for versions M1 to M4 and levels L, M and Q, or -1 where the version does not have the level.
     /// </summary>
-    private static ReadOnlySpan<sbyte> MicroSymbolNumbers =>
+    public static ReadOnlySpan<sbyte> MicroSymbolNumbers =>
     [
         0, -1, -1,
         1, 2, -1,
@@ -434,9 +434,14 @@ internal static class QrEncoder
     ];
 
     /// <summary>
+    /// Gets the characters of Alphanumeric mode, Table 5, in the order of their values.
+    /// </summary>
+    public static ReadOnlySpan<char> AlphanumericCharacters => "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ $%*+-./:";
+
+    /// <summary>
     /// Gets the error correction level indicators of Table 12, for levels L, M, Q and H.
     /// </summary>
-    private static ReadOnlySpan<byte> LevelIndicators => [0b01, 0b00, 0b11, 0b10];
+    public static ReadOnlySpan<byte> LevelIndicators => [0b01, 0b00, 0b11, 0b10];
 
     /// <summary>
     /// Encodes the text into a symbol.
@@ -852,8 +857,11 @@ internal static class QrEncoder
         int columns = size.Columns;
         int cells = rows * columns;
 
-        // One rent holds the state of each module and the mask layers. Bit m of a mask layer is the module under data mask pattern m.
+        // One rent holds the state of each module and the mask layers, and another the order of the data modules. Bit m of a mask layer is the module under
+        // data mask pattern m.
         PooledBuffer<byte> buffer = new(2 * cells);
+        using PooledBuffer<int> orderBuffer = new(cells);
+        Span<int> order = orderBuffer.Span;
         try
         {
             Span<ModuleState> states = MemoryMarshal.Cast<byte, ModuleState>(buffer.Span[..cells]);
@@ -868,45 +876,13 @@ internal static class QrEncoder
                 layers[i] = states[i] == ModuleState.Dark ? (byte)0xFF : (byte)0;
             }
 
-            // Section 6.7.3: two-module columns from the lower right corner, upwards and downwards in turn, the right module before the left one, skipping the
-            // vertical timing pattern of a QR Code symbol. The most significant bit of a codeword comes first. A Rectangular Micro QR Code symbol has a timing
-            // pattern down its right edge, so its first column pair starts one column in.
-            int bit = 0;
-            int x = size.Format == QrFormat.Rectangular ? columns - 2 : columns - 1;
-            int y = rows - 1;
-            int direction = -1;
-            bool right = true;
-            while (x >= 0)
+            // The codeword stream fills the data modules in the order of section 6.7.3, the most significant bit of a codeword first.
+            int count = Walk(size, states, order);
+            for (int bit = 0; bit < count; bit++)
             {
-                int index = (y * columns) + x;
-                if (states[index] == ModuleState.Data)
-                {
-                    bool dark = ((stream[bit >> 3] >> (7 - (bit & 7))) & 1) != 0;
-                    layers[index] = (byte)(MaskLayer(y, x) ^ (dark ? 0xFF : 0));
-                    bit++;
-                }
-
-                if (right)
-                {
-                    right = false;
-                    x--;
-                }
-                else
-                {
-                    right = true;
-                    x++;
-                    y += direction;
-                    if (y < 0 || y >= rows)
-                    {
-                        direction = -direction;
-                        y += direction;
-                        x -= 2;
-                        if (size.Format == QrFormat.Full && x == 6)
-                        {
-                            x--;
-                        }
-                    }
-                }
+                int index = order[bit];
+                bool dark = ((stream[bit >> 3] >> (7 - (bit & 7))) & 1) != 0;
+                layers[index] = (byte)(MaskLayer(index / columns, index % columns) ^ (dark ? 0xFF : 0));
             }
 
             // Section 6.8.2.1: "the area to be evaluated is the complete symbol", so the format information of each mask, the dark module and the version
@@ -940,6 +916,96 @@ internal static class QrEncoder
         {
             buffer.Dispose();
         }
+    }
+
+    /// <summary>
+    /// Writes the indices of the modules of a symbol size that hold the codeword stream, row-major, in the order the stream fills them, section 6.7.3.
+    /// </summary>
+    /// <param name="size">The symbol size.</param>
+    /// <param name="order">The indices to write, room for every module of the symbol.</param>
+    /// <returns>The number of data modules.</returns>
+    public static int DataModuleOrder(SymbolSize size, Span<int> order)
+    {
+        int cells = size.Rows * size.Columns;
+        using PooledBuffer<byte> buffer = new(cells);
+        Span<ModuleState> states = MemoryMarshal.Cast<byte, ModuleState>(buffer.Span[..cells]);
+        states.Fill(ModuleState.Data);
+        PlaceFunctionPatterns(size, new ModuleGrid(states, size.Rows, size.Columns));
+        return Walk(size, states, order);
+    }
+
+    /// <summary>
+    /// Returns the size of a format and version.
+    /// </summary>
+    /// <param name="format">The format.</param>
+    /// <param name="version">The version, 1 to 40, 1 to 4 for M1 to M4, or the <see cref="RectangularMicroQrCodeVersion"/> value.</param>
+    /// <param name="size">The size.</param>
+    /// <returns><see langword="true"/> when the format has the version.</returns>
+    public static bool TryGetSize(QrFormat format, int version, out SymbolSize size)
+    {
+        foreach (SymbolSize candidate in Sizes)
+        {
+            if (candidate.Format == format && candidate.Version == version)
+            {
+                size = candidate;
+                return true;
+            }
+        }
+
+        size = default;
+        return false;
+    }
+
+    /// <summary>
+    /// Walks the data modules in the order of section 6.7.3: two-module columns from the lower right corner, upwards and downwards in turn, the right module
+    /// before the left one, skipping the vertical timing pattern of a QR Code symbol. A Rectangular Micro QR Code symbol has a timing pattern down its right
+    /// edge, so its first column pair starts one column in.
+    /// </summary>
+    /// <param name="size">The symbol size.</param>
+    /// <param name="states">The module states with the function patterns placed.</param>
+    /// <param name="order">The indices of the data modules to write.</param>
+    /// <returns>The number of data modules.</returns>
+    private static int Walk(SymbolSize size, ReadOnlySpan<ModuleState> states, Span<int> order)
+    {
+        int rows = size.Rows;
+        int columns = size.Columns;
+        int count = 0;
+        int x = size.Format == QrFormat.Rectangular ? columns - 2 : columns - 1;
+        int y = rows - 1;
+        int direction = -1;
+        bool right = true;
+        while (x >= 0)
+        {
+            int index = (y * columns) + x;
+            if (states[index] == ModuleState.Data)
+            {
+                order[count++] = index;
+            }
+
+            if (right)
+            {
+                right = false;
+                x--;
+            }
+            else
+            {
+                right = true;
+                x++;
+                y += direction;
+                if (y < 0 || y >= rows)
+                {
+                    direction = -direction;
+                    y += direction;
+                    x -= 2;
+                    if (size.Format == QrFormat.Full && x == 6)
+                    {
+                        x--;
+                    }
+                }
+            }
+        }
+
+        return count;
     }
 
     /// <summary>
@@ -1109,7 +1175,7 @@ internal static class QrEncoder
     /// beside the finder sub-pattern of a Rectangular Micro QR Code symbol. </param>
     /// <param name="row">The row of the module.</param>
     /// <param name="column">The column of the module.</param>
-    private static void FormatPosition(SymbolSize size, int index, int copy, out int row, out int column)
+    public static void FormatPosition(SymbolSize size, int index, int copy, out int row, out int column)
     {
         int n = size.Columns;
         if (size.Format == QrFormat.Rectangular)
@@ -1353,7 +1419,7 @@ internal static class QrEncoder
     /// <param name="row">The row, i in Table 10.</param>
     /// <param name="column">The column, j in Table 10.</param>
     /// <returns>The mask layer.</returns>
-    private static int MaskLayer(int row, int column)
+    public static int MaskLayer(int row, int column)
     {
         int product = row * column;
         int layer = 0;
@@ -1419,7 +1485,7 @@ internal static class QrEncoder
     /// <param name="checkBits">The number of check bits, the degree of the generator.</param>
     /// <param name="generator">The generator polynomial, its highest term included.</param>
     /// <returns>The data bits and then the check bits.</returns>
-    private static int BchCode(int data, int checkBits, int generator)
+    public static int BchCode(int data, int checkBits, int generator)
     {
         int remainder = data << checkBits;
         while (remainder != 0)
@@ -1439,7 +1505,7 @@ internal static class QrEncoder
     /// <summary>
     /// One QR Code, Micro QR Code or Rectangular Micro QR Code symbol size.
     /// </summary>
-    private readonly struct SymbolSize
+    public readonly struct SymbolSize
     {
         /// <summary>
         /// The error correction codewords at level L, or -1 where the level does not exist.
