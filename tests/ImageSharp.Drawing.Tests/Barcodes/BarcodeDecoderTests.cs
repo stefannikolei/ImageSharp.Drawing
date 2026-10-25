@@ -297,6 +297,30 @@ public class BarcodeDecoderTests
     }
 
     /// <summary>
+    /// A Code 49 symbol decodes to its data in every starting mode, with digit runs of every remainder of the numeric encodation method, from two rows to eight.
+    /// </summary>
+    /// <param name="text">The data.</param>
+    [Theory]
+    [InlineData("CODE 49")]
+    [InlineData("A")]
+    [InlineData("12345")]
+    [InlineData("123456")]
+    [InlineData("1234567")]
+    [InlineData("12345678")]
+    [InlineData("123456789")]
+    [InlineData("A1234567890123B")]
+    [InlineData("lower Case\u0001\t\r\n")]
+    [InlineData("!\"#&'()*,:;<=>?@[\\]")]
+    [InlineData("^_`{|}~\u007F")]
+    [InlineData("THE QUICK BROWN FOX JUMPS OVER THE LAZY DOG 01234")]
+    [InlineData("123456789012345678901234567890123456789012345678901234567890123456789012345678901")]
+    public void Code49_RoundTrips(string text)
+    {
+        text = System.Text.RegularExpressions.Regex.Unescape(text);
+        AssertReads(new Code49Symbology(), text, BarcodeFamily.Code49, "]T0", text);
+    }
+
+    /// <summary>
     /// A symbol reads upright, on either side and upside down.
     /// </summary>
     /// <param name="mode">The rotation of the image.</param>
@@ -345,6 +369,8 @@ public class BarcodeDecoderTests
         yield return (new RoyalMailSymbology(), "SN34RD1A", BarcodeFamily.RoyalMail, "SN34RD1A");
         yield return (new Pdf417Symbology(), "PDF417 rotated", BarcodeFamily.Pdf417, "PDF417 rotated");
         yield return (new MicroPdf417Symbology(), "Micro rotated", BarcodeFamily.MicroPdf417, "Micro rotated");
+        yield return (new Code16KSymbology(), "Code 16K rotated", BarcodeFamily.Code16K, "Code 16K rotated");
+        yield return (new Code49Symbology(), "Code 49 rotated", BarcodeFamily.Code49, "Code 49 rotated");
         yield return (new IntelligentMailSymbology(), "0123456709498765432101234567891", BarcodeFamily.IntelligentMail, "0123456709498765432101234567891");
     }
 

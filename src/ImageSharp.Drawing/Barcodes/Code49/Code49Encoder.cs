@@ -13,6 +13,57 @@ namespace SixLabors.ImageSharp.Drawing.Barcodes;
 internal static class Code49Encoder
 {
     /// <summary>
+    /// The smallest number of rows, section 2.1.
+    /// </summary>
+    public const int MinimumRows = 2;
+
+    /// <summary>
+    /// The largest number of rows, section 2.1.
+    /// </summary>
+    public const int MaximumRows = 8;
+
+    /// <summary>
+    /// The number of code characters in a row, Table 3.
+    /// </summary>
+    public const int CodeCharactersPerRow = 8;
+
+    /// <summary>
+    /// The modulus of the row check character, section 2.1.2.
+    /// </summary>
+    public const int RowModulus = 49;
+
+    /// <summary>
+    /// The code character value of Shift 1, Table 6.
+    /// </summary>
+    public const int ShiftOne = 43;
+
+    /// <summary>
+    /// The code character value of Shift 2, Table 6.
+    /// </summary>
+    public const int ShiftTwo = 44;
+
+    /// <summary>
+    /// The code character value of the numeric shift, Table 6, which section 2.2.1 also makes the pad character: "When one or more numeric shifts appear
+    /// immediately preceding the symbol check characters, they are pad characters and do not represent data."
+    /// </summary>
+    public const int NumericShift = 48;
+
+    /// <summary>
+    /// The number of symbol characters in a row, section 2.1.1.
+    /// </summary>
+    public const int SymbolCharactersPerRow = 4;
+
+    /// <summary>
+    /// The number a four digit remainder is added to, section 2.2.2: "48²C1 + 48C2 + C3 = 100,000 plus the four digits to be represented".
+    /// </summary>
+    public const int FourDigitOffset = 100000;
+
+    /// <summary>
+    /// The base of the numeric encodation method of section 2.2.2, in which a block of digits converts to code characters of value 0 to 47.
+    /// </summary>
+    public const int NumericBase = 48;
+
+    /// <summary>
     /// The quiet zone in modules before the start pattern: the "ten modules adjacent to the start pattern" of section 3.4.
     /// </summary>
     private const int LeadingQuietZone = 10;
@@ -26,21 +77,6 @@ internal static class Code49Encoder
     /// The width of a row in modules: "the 70X bars and spaces" of section 3.6.1.
     /// </summary>
     private const int RowWidth = 70;
-
-    /// <summary>
-    /// The smallest number of rows, section 2.1.
-    /// </summary>
-    private const int MinimumRows = 2;
-
-    /// <summary>
-    /// The largest number of rows, section 2.1.
-    /// </summary>
-    private const int MaximumRows = 8;
-
-    /// <summary>
-    /// The number of code characters in a row, Table 3.
-    /// </summary>
-    private const int CodeCharactersPerRow = 8;
 
     /// <summary>
     /// The nominal bar height in modules: the "minimum bar height of 8X" of section 3.3.
@@ -59,30 +95,9 @@ internal static class Code49Encoder
     private const float SeparatorHeight = 1F;
 
     /// <summary>
-    /// The modulus of the row check character, section 2.1.2.
-    /// </summary>
-    private const int RowModulus = 49;
-
-    /// <summary>
     /// The modulus of the symbol check characters, Formula 2.
     /// </summary>
     private const int SymbolModulus = 2401;
-
-    /// <summary>
-    /// The code character value of Shift 1, Table 6.
-    /// </summary>
-    private const int ShiftOne = 43;
-
-    /// <summary>
-    /// The code character value of Shift 2, Table 6.
-    /// </summary>
-    private const int ShiftTwo = 44;
-
-    /// <summary>
-    /// The code character value of the numeric shift, Table 6, which section 2.2.1 also makes the pad character: "When one or more numeric shifts appear
-    /// immediately preceding the symbol check characters, they are pad characters and do not represent data."
-    /// </summary>
-    private const int NumericShift = 48;
 
     /// <summary>
     /// The shortest digit run this encoder carries in the numeric encodation method: five digits, one block of section 2.2.2. Section 2.2.2 says only that
@@ -91,19 +106,9 @@ internal static class Code49Encoder
     private const int NumericRun = 5;
 
     /// <summary>
-    /// The number of symbol characters in a row, section 2.1.1.
-    /// </summary>
-    private const int SymbolCharactersPerRow = 4;
-
-    /// <summary>
     /// The number of digits one block of three numeric code characters carries, section 2.2.2.
     /// </summary>
     private const int NumericBlock = 5;
-
-    /// <summary>
-    /// The number a four digit remainder is added to, section 2.2.2: "48²C1 + 48C2 + C3 = 100,000 plus the four digits to be represented".
-    /// </summary>
-    private const int FourDigitOffset = 100000;
 
     /// <summary>
     /// The longest text a symbol carries: the 81 numeric characters of Table 1, which exceed its 49 alphanumeric ones.
@@ -115,11 +120,6 @@ internal static class Code49Encoder
     /// with a bar and ends with a space, so no two runs merge.
     /// </summary>
     private const int RowRunCount = 2 + (SymbolCharactersPerRow * 8) + 1;
-
-    /// <summary>
-    /// The base of the numeric encodation method of section 2.2.2, in which a block of digits converts to code characters of value 0 to 47.
-    /// </summary>
-    private const int NumericBase = 48;
 
     /// <summary>
     /// The starting modes of Table 8 that the encoder uses, with their mode values.
@@ -148,25 +148,16 @@ internal static class Code49Encoder
     }
 
     /// <summary>
-    /// Gets the check character weights of Table 5 in the order of the symbol characters. The X weights start at the first entry, the Y weights at the second
-    /// and the Z weights at the third; the row count character weighs 20, 16 and 38.
-    /// </summary>
-    private static ReadOnlySpan<byte> Weights =>
-    [
-        1, 9, 31, 26, 2, 12, 17, 23, 37, 18, 22, 6, 27, 44, 15, 43, 39, 11, 13, 5, 41, 33, 36, 8, 4, 32, 3, 19, 40, 25, 29, 10, 24, 30
-    ];
-
-    /// <summary>
     /// Gets the parity of the four symbol characters of rows 1 to 7, Table 2, one bit per symbol character from the left, a set bit for odd parity. The last
     /// row is always even.
     /// </summary>
-    private static ReadOnlySpan<byte> RowParity => [0b1001, 0b0101, 0b1100, 0b0011, 0b1010, 0b0110, 0b1111];
+    public static ReadOnlySpan<byte> RowParity => [0b1001, 0b0101, 0b1100, 0b0011, 0b1010, 0b0110, 0b1111];
 
     /// <summary>
     /// Gets the code character value of each ASCII character, 0 to 127, by Table 7. The value is from Table 6, after the shift that <see cref="AsciiShifts"/>
     /// gives.
     /// </summary>
-    private static ReadOnlySpan<byte> AsciiValues =>
+    public static ReadOnlySpan<byte> AsciiValues =>
     [
         38, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24,
         25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 1, 2, 3, 4, 5,
@@ -181,7 +172,7 @@ internal static class Code49Encoder
     /// <summary>
     /// Gets the shift before the code character of each ASCII character, 0 to 127, by Table 7: 0 for none, 1 for Shift 1 and 2 for Shift 2.
     /// </summary>
-    private static ReadOnlySpan<byte> AsciiShifts =>
+    public static ReadOnlySpan<byte> AsciiShifts =>
     [
         1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
         1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
@@ -191,6 +182,15 @@ internal static class Code49Encoder
         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 2, 2, 2,
         2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
         2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2
+    ];
+
+    /// <summary>
+    /// Gets the check character weights of Table 5 in the order of the symbol characters. The X weights start at the first entry, the Y weights at the second
+    /// and the Z weights at the third; the row count character weighs 20, 16 and 38.
+    /// </summary>
+    private static ReadOnlySpan<byte> Weights =>
+    [
+        1, 9, 31, 26, 2, 12, 17, 23, 37, 18, 22, 6, 27, 44, 15, 43, 39, 11, 13, 5, 41, 33, 36, 8, 4, 32, 3, 19, 40, 25, 29, 10, 24, 30
     ];
 
     /// <summary>
@@ -321,13 +321,26 @@ internal static class Code49Encoder
         codes = codes[..(rows * CodeCharactersPerRow)];
         for (int row = 0; row < rows; row++)
         {
-            int perRow = row < rows - 1 ? 7 : (rows <= 6 ? 2 : 0);
-            Span<int> slots = codes.Slice(row * CodeCharactersPerRow, perRow);
-            int taken = Math.Min(perRow, data.Length);
+            Span<int> slots = codes.Slice(row * CodeCharactersPerRow, DataCharacters(row, rows));
+            int taken = Math.Min(slots.Length, data.Length);
             data[..taken].CopyTo(slots);
             slots[taken..].Fill(NumericShift);
             data = data[taken..];
         }
+
+        WriteChecks(codes, (int)mode);
+        return codes.Length;
+    }
+
+    /// <summary>
+    /// Writes the check characters of a symbol whose data positions are filled: the row check character of every row, the row count character and the symbol
+    /// check characters of the last row, sections 2.1.2 to 2.1.4.
+    /// </summary>
+    /// <param name="codes">The code character values, eight per row.</param>
+    /// <param name="mode">The starting mode of Table 8.</param>
+    public static void WriteChecks(Span<int> codes, int mode)
+    {
+        int rows = codes.Length / CodeCharactersPerRow;
 
         // Section 2.1.2: the last code character of every row is the modulo 49 sum of the other seven.
         for (int row = 0; row < rows - 1; row++)
@@ -338,7 +351,7 @@ internal static class Code49Encoder
 
         // Section 2.1.3: Cr7 = 7(r - 2) + M.
         int last = (rows - 1) * CodeCharactersPerRow;
-        int rowCount = (7 * (rows - MinimumRows)) + (int)mode;
+        int rowCount = (7 * (rows - MinimumRows)) + mode;
         codes[last + 6] = rowCount;
 
         // Formula 2 with the weights of Table 5: the symbol characters of every row but the last, in order, then Wr1 for the Y and X sums and Wr2 for the X
@@ -382,8 +395,16 @@ internal static class Code49Encoder
         codes[last + 5] = wr3 % RowModulus;
 
         codes[last + 7] = RowCheckCharacter(codes[last..]);
-        return codes.Length;
     }
+
+    /// <summary>
+    /// Returns the number of data code characters a row carries, Table 4: seven in every row before the last, and in the last row two for a symbol of up to
+    /// six rows and none for one of seven or eight, whose last row starts with the symbol check character Wr1.
+    /// </summary>
+    /// <param name="row">The row, from zero.</param>
+    /// <param name="rows">The number of rows.</param>
+    /// <returns>The number of data code characters of the row.</returns>
+    public static int DataCharacters(int row, int rows) => row < rows - 1 ? 7 : (rows <= 6 ? 2 : 0);
 
     /// <summary>
     /// Writes the symbol from its code characters: one row of bars per eight, one module separator bars between the rows, and the top and bottom separator bars
