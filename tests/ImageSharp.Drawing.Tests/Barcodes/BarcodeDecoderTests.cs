@@ -627,6 +627,25 @@ public class BarcodeDecoderTests
     }
 
     /// <summary>
+    /// A Han Xin Code symbol decodes with Numeric and Byte segments at every level and in versions with and without alignment patterns.
+    /// </summary>
+    /// <param name="level">The error correction level.</param>
+    /// <param name="version">The version, or 0 for the smallest.</param>
+    /// <param name="text">The data.</param>
+    [Theory]
+    [InlineData(HanXinErrorCorrectionLevel.L1, 0, "Han Xin Code")]
+    [InlineData(HanXinErrorCorrectionLevel.L2, 0, "1234567890123")]
+    [InlineData(HanXinErrorCorrectionLevel.L3, 0, "abc 12345 def 12345678 \u00E9\u00FC")]
+    [InlineData(HanXinErrorCorrectionLevel.L4, 5, "HX5")]
+    [InlineData(HanXinErrorCorrectionLevel.L2, 20, "Version 20 with alignment patterns 1")]
+    [InlineData(HanXinErrorCorrectionLevel.L1, 84, "V84")]
+    public void HanXin_RoundTrips(HanXinErrorCorrectionLevel level, int version, string text)
+    {
+        text = System.Text.RegularExpressions.Regex.Unescape(text);
+        AssertReads(version == 0 ? new HanXinSymbology(level) : new HanXinSymbology(level, version), text, BarcodeFamily.HanXin, "]h0", text);
+    }
+
+    /// <summary>
     /// A symbol reads upright, on either side and upside down.
     /// </summary>
     /// <param name="mode">The rotation of the image.</param>
@@ -689,6 +708,7 @@ public class BarcodeDecoderTests
         yield return (new AztecCodeSymbology(23, 6), "Aztec full range", BarcodeFamily.Aztec, "Aztec full range");
         yield return (new AztecRuneSymbology(), "42", BarcodeFamily.AztecRune, "042");
         yield return (new MaxiCodeSymbology(), "MaxiCode rotated", BarcodeFamily.MaxiCode, "MaxiCode rotated");
+        yield return (new HanXinSymbology(), "Han Xin rotated", BarcodeFamily.HanXin, "Han Xin rotated");
         yield return (new IntelligentMailSymbology(), "0123456709498765432101234567891", BarcodeFamily.IntelligentMail, "0123456709498765432101234567891");
     }
 

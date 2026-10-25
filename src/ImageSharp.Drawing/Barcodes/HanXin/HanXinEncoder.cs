@@ -33,12 +33,12 @@ internal static class HanXinEncoder
     /// <summary>
     /// The side in modules of a version is this value plus two modules for each version: 23 for version 1 and 189 for version 84.
     /// </summary>
-    private const int BaseSide = 21;
+    public const int BaseSide = 21;
 
     /// <summary>
     /// The step of the placement order of the codewords: codewords 0, 13, 26 and so on, then 1, 14, 27 and so on.
     /// </summary>
-    private const int InterleaveStep = 13;
+    public const int InterleaveStep = 13;
 
     /// <summary>
     /// The number of error correction levels, L1 to L4.
@@ -89,22 +89,22 @@ internal static class HanXinEncoder
     /// <summary>
     /// The number of bits of the byte count of a Byte segment. A segment is at most <see cref="MaximumLength"/> bytes, which the 13 bits hold.
     /// </summary>
-    private const int ByteCountBits = 13;
+    public const int ByteCountBits = 13;
 
     /// <summary>
     /// The terminator of a Numeric segment whose last group holds one digit. The terminators for two and three digits follow it.
     /// </summary>
-    private const int NumericTerminator = 0b1111111101;
+    public const int NumericTerminator = 0b1111111101;
 
     /// <summary>
     /// The number of rows and columns of a finder pattern, its separator included.
     /// </summary>
-    private const int FinderSize = 8;
+    public const int FinderSize = 8;
 
     /// <summary>
     /// The number of bits of the function information: three 4-bit data words, four 4-bit check words and six fixed bits.
     /// </summary>
-    private const int FunctionBits = 34;
+    public const int FunctionBits = 34;
 
     /// <summary>
     /// The number of masks.
@@ -112,14 +112,19 @@ internal static class HanXinEncoder
     private const int MaskCount = 4;
 
     /// <summary>
+    /// The value of a cell no pattern or data bit has claimed yet.
+    /// </summary>
+    private const byte Unset = 0xFF;
+
+    /// <summary>
     /// The field of the data error correction: GF(256) with the polynomial x^8 + x^6 + x^5 + x + 1, 355 decimal.
     /// </summary>
-    private static readonly GaloisField Field = new(256, 355);
+    public static readonly GaloisField Field = new(256, 355);
 
     /// <summary>
     /// The field of the function information: GF(16) with the polynomial x^4 + x + 1, 19 decimal.
     /// </summary>
-    private static readonly GaloisField FunctionField = new(16, 19);
+    public static readonly GaloisField FunctionField = new(16, 19);
 
     /// <summary>
     /// The modes of the data segments, each value the 4-bit mode indicator that starts its segment.
@@ -160,7 +165,7 @@ internal static class HanXinEncoder
     /// Gets the number of modules that carry codewords in each version, the side squared less the finder patterns, the alignment patterns and the function
     /// information.
     /// </summary>
-    private static ReadOnlySpan<ushort> DataModules =>
+    public static ReadOnlySpan<ushort> DataModules =>
     [
         205, 301, 405, 439, 555, 675, 805, 943, 1089, 1243, 1289, 1455,
         1629, 1805, 1995, 2187, 2393, 2607, 2829, 3053, 3291, 3383, 3631, 3887,
@@ -282,7 +287,7 @@ internal static class HanXinEncoder
     /// <summary>
     /// Gets the finder pattern at the bottom left corner, row by row from the bottom edge upward, its light separator included.
     /// </summary>
-    private static ReadOnlySpan<byte> CornerFinderPattern =>
+    public static ReadOnlySpan<byte> CornerFinderPattern =>
     [
         1, 1, 1, 0, 1, 0, 1, 0,
         1, 1, 1, 0, 1, 0, 1, 0,
@@ -392,7 +397,7 @@ internal static class HanXinEncoder
     /// <param name="version">The version, 1 to 84.</param>
     /// <param name="level">The level, 0 for L1 to 3 for L4.</param>
     /// <returns>Nine bytes: for each group, the number of blocks, the data codewords and the check codewords of a block.</returns>
-    private static ReadOnlySpan<byte> BlockGroups(int version, int level)
+    public static ReadOnlySpan<byte> BlockGroups(int version, int level)
         => Blocks.Slice((((version - 1) * LevelCount) + level) * LevelEntries, LevelEntries);
 
     /// <summary>
@@ -537,6 +542,30 @@ internal static class HanXinEncoder
     }
 
     /// <summary>
+    /// Writes the indices of the cells of a version that the codeword bits fill, row-major, in the order the bits fill them: row by row from the top left,
+    /// past the finder patterns, the alignment patterns and the function information.
+    /// </summary>
+    /// <param name="version">The version.</param>
+    /// <param name="order">The indices to write, room for every cell of the symbol.</param>
+    /// <returns>The number of data cells.</returns>
+    public static int DataCellOrder(int version, Span<int> order)
+    {
+        int size = BaseSide + (2 * version);
+        byte[] cells = new byte[size * size];
+        PlacePatterns(version, cells);
+        int count = 0;
+        for (int c = 0; c < cells.Length; c++)
+        {
+            if (cells[c] == Unset)
+            {
+                order[count++] = c;
+            }
+        }
+
+        return count;
+    }
+
+    /// <summary>
     /// Builds the mask layers of a symbol: the alignment patterns, the finder patterns and the function information modules, which hold light until the mask is
     /// chosen, then the codeword bits in the cells left, row by row from the top left. Bit m of a cell is its module value under mask m, so a function cell is
     /// 0x0F or 0 and a data cell is its bit repeated, flipped by <see cref="MaskLayer"/>.
@@ -546,10 +575,42 @@ internal static class HanXinEncoder
     /// <param name="cells">The cells, side squared, to write.</param>
     private static void Layout(int version, ReadOnlySpan<int> codewords, Span<byte> cells)
     {
-        // A cell is unset until a pattern or a data bit claims it. Section 5.8.2 places the fixed patterns first, so the data takes only the cells they leave.
-        const byte unset = 0xFF;
         int size = BaseSide + (2 * version);
-        cells.Fill(unset);
+        PlacePatterns(version, cells);
+
+        // The bits fill the unset cells in row order, the most significant bit of each codeword first. The count of unset cells is DataModules of the version,
+        // and the codewords hold at least that many bits. The patterns above write 0 or 1, which become 0 or 0x0F, the same value under every mask.
+        int bit = 0;
+        int c = 0;
+        for (int y = 0; y < size; y++)
+        {
+            for (int x = 0; x < size; x++, c++)
+            {
+                if (cells[c] == Unset)
+                {
+                    int value = (codewords[bit >> 3] >> (7 - (bit & 7))) & 1;
+                    cells[c] = (byte)(MaskLayer(x + 1, y + 1) ^ (value * 0x0F));
+                    bit++;
+                }
+                else
+                {
+                    cells[c] = (byte)(cells[c] * 0x0F);
+                }
+            }
+        }
+    }
+
+    /// <summary>
+    /// Writes the cells the codewords do not take: the alignment patterns, the finder patterns, and the function information as light, each 0 or 1. Every other
+    /// cell is left at 0xFF.
+    /// </summary>
+    /// <param name="version">The version.</param>
+    /// <param name="cells">The cells, side squared, to write.</param>
+    private static void PlacePatterns(int version, Span<byte> cells)
+    {
+        // A cell is unset until a pattern or a data bit claims it. Section 5.8.2 places the fixed patterns first, so the data takes only the cells they leave.
+        int size = BaseSide + (2 * version);
+        cells.Fill(Unset);
 
         int spacing = Alignment[(version - 1) * 2];
         int intervals = Alignment[((version - 1) * 2) + 1];
@@ -581,27 +642,6 @@ internal static class HanXinEncoder
             FunctionPositions(i, size, out int x1, out int y1, out int x2, out int y2);
             cells[(y1 * size) + x1] = 0;
             cells[(y2 * size) + x2] = 0;
-        }
-
-        // The bits fill the unset cells in row order, the most significant bit of each codeword first. The count of unset cells is DataModules of the version,
-        // and the codewords hold at least that many bits. The patterns above write 0 or 1, which become 0 or 0x0F, the same value under every mask.
-        int bit = 0;
-        int c = 0;
-        for (int y = 0; y < size; y++)
-        {
-            for (int x = 0; x < size; x++, c++)
-            {
-                if (cells[c] == unset)
-                {
-                    int value = (codewords[bit >> 3] >> (7 - (bit & 7))) & 1;
-                    cells[c] = (byte)(MaskLayer(x + 1, y + 1) ^ (value * 0x0F));
-                    bit++;
-                }
-                else
-                {
-                    cells[c] = (byte)(cells[c] * 0x0F);
-                }
-            }
         }
     }
 
@@ -724,7 +764,7 @@ internal static class HanXinEncoder
     /// <param name="y1">The row of the first position.</param>
     /// <param name="x2">The column of the second position.</param>
     /// <param name="y2">The row of the second position.</param>
-    private static void FunctionPositions(int i, int size, out int x1, out int y1, out int x2, out int y2)
+    public static void FunctionPositions(int i, int size, out int x1, out int y1, out int x2, out int y2)
     {
         // Bits 0 to 8 run along row 8 from the left edge, bits 9 to 16 up column 8, bits 17 to 25 down from the top along column side - 9, and bits 26 to 33
         // along row 8 to the right edge, each with its partner by the opposite finder pattern.
@@ -757,7 +797,7 @@ internal static class HanXinEncoder
     /// <param name="a">The one-based column.</param>
     /// <param name="b">The one-based row.</param>
     /// <returns>The mask layer, bits 1 to 3.</returns>
-    private static int MaskLayer(int a, int b)
+    public static int MaskLayer(int a, int b)
     {
         int layer = 0;
         layer |= (a + b) % 2 == 0 ? 1 << 1 : 0;

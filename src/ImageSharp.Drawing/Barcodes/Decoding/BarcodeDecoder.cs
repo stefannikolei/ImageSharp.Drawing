@@ -80,6 +80,7 @@ public static class BarcodeDecoder
         new DataMatrixReader(),
         new AztecReader(),
         new MaxiCodeReader(),
+        new HanXinReader(),
     ];
 
     /// <summary>
