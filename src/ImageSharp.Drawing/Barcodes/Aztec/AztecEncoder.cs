@@ -873,6 +873,93 @@ internal static class AztecEncoder
     }
 
     /// <summary>
+    /// Returns the number of modules on a side of a symbol: the 11 x 11 core of a compact symbol and the 15 x 15 core of a full-range symbol, four modules for
+    /// each data layer, and in a full-range symbol the lines of the reference grid the layers cross, section 7.1.4.
+    /// </summary>
+    /// <param name="compact">Whether the symbol is compact.</param>
+    /// <param name="layers">The number of data layers.</param>
+    /// <returns>The modules on a side.</returns>
+    public static int Side(bool compact, int layers)
+        => compact ? 11 + (layers * 4) : 15 + (layers * 4) + (2 * ((((2 * layers) + 21) / 15) - 1));
+
+    /// <summary>
+    /// Returns the number of bits the data layers hold. Layer l of a core of width W holds 8 (W + 4l + 4) bits, so L layers hold 16 L^2 + (8 W + 16) L bits,
+    /// with W = 9 for a compact symbol and 12, the core less the grid line through the centre, for a full-range one.
+    /// </summary>
+    /// <param name="compact">Whether the symbol is compact.</param>
+    /// <param name="layers">The number of data layers.</param>
+    /// <returns>The number of bits.</returns>
+    public static int CapacityBits(bool compact, int layers)
+    {
+        int coreWidth = compact ? 9 : 12;
+        return (16 * layers * layers) + (((8 * coreWidth) + 16) * layers);
+    }
+
+    /// <summary>
+    /// Returns the codeword count of Table 1 and the codeword size of Table 3 of a symbol.
+    /// </summary>
+    /// <param name="compact">Whether the symbol is compact.</param>
+    /// <param name="layers">The number of data layers, 1 to 4 compact or 1 to 32 full-range.</param>
+    /// <param name="codewordBits">The codeword size B.</param>
+    /// <returns>The number of codewords, data and check together.</returns>
+    public static int Codewords(bool compact, int layers, out int codewordBits)
+    {
+        SymbolSize size = new(compact, layers);
+        codewordBits = size.CodewordBits;
+        return size.Codewords;
+    }
+
+    /// <summary>
+    /// Writes the module of each bit of the data layers, section 7.3.4: the layers spiral outward clockwise from the upper left of the core in dominos of two
+    /// modules, the more significant bit outward, and take the bit stream with its last bit first, so the bits a symbol does not fill are the first of the
+    /// stream. In a full-range symbol the reference grid lines push the data modules outward.
+    /// </summary>
+    /// <param name="compact">Whether the symbol is compact.</param>
+    /// <param name="layers">The number of data layers.</param>
+    /// <param name="positions">The row-major module index of each bit of the capacity, the first bit of the stream first.</param>
+    public static void DataPositions(bool compact, int layers, Span<int> positions)
+    {
+        // Without the grid the core width is the finder alone: 9 modules in a compact symbol, and 13 less the grid line through the centre, 12, in a full-range
+        // symbol. The mode message ring is between it and layer 1.
+        int coreWidth = compact ? 9 : 12;
+        int packedSide = coreWidth + (layers * 4) + 2;
+        int packedMiddle = ((packedSide - 1) / 2 * packedSide) + ((packedSide - 1) / 2);
+        int side = Side(compact, layers);
+
+        // The modules off the grid, in row-major order, take the layout without the grid in its row-major order.
+        int[]? offGrid = null;
+        if (!compact)
+        {
+            offGrid = new int[packedSide * packedSide];
+            int half = side / 2;
+            int next = 0;
+            for (int row = 0; row < side; row++)
+            {
+                for (int column = 0; column < side; column++)
+                {
+                    if ((column - half) % 16 != 0 && (half - row) % 16 != 0)
+                    {
+                        offGrid[next++] = (row * side) + column;
+                    }
+                }
+            }
+        }
+
+        int capacityBits = CapacityBits(compact, layers);
+        int index = 0;
+        for (int layer = 1; layer <= layers; layer++)
+        {
+            int layerWidth = coreWidth + (layer * 4);
+            for (int bit = 0; bit < layerWidth * 8; bit++)
+            {
+                (int x, int y) = LayerPosition(coreWidth, layer, bit, layerWidth);
+                int packed = packedMiddle + x - (y * packedSide);
+                positions[capacityBits - 1 - index++] = offGrid is null ? packed : offGrid[packed];
+            }
+        }
+    }
+
+    /// <summary>
     /// Places the modules. The data layers spiral outward clockwise from the upper left of the Core Symbol in dominos of two modules, section 7.3.4, taking the
     /// codewords in reverse order. A full-range symbol is first laid out without its reference grid, then the grid lines of section 7.1.4 are inserted every 16
     /// modules from the centre, which moves every data module outward by the grid lines it crosses.
@@ -887,59 +974,27 @@ internal static class AztecEncoder
         bool compact = symbolSize.IsCompact;
         int layers = symbolSize.Layers;
         int size = symbolSize.CodewordBits;
-
-        // The core is 11 x 11 modules in a compact symbol and 15 x 15 in a full-range symbol, finder and mode message ring included. Without the grid the
-        // full-range core is 14 modules wide, because the grid line through the centre is not there yet. The core width here is the finder alone: 9 modules
-        // in a compact symbol, and 13 less the grid line through the centre, 12, in a full-range symbol. The mode message ring is between it and layer 1.
-        int coreWidth = compact ? 9 : 12;
-        int packedSide = coreWidth + (layers * 4) + 2;
-        using PooledBuffer<bool> packedBuffer = new(packedSide * packedSide);
-        Span<bool> packed = packedBuffer.Span;
-        packed.Clear();
-        int packedMiddle = ((packedSide - 1) / 2 * packedSide) + ((packedSide - 1) / 2);
+        int side = Side(compact, layers);
+        int finder = compact ? 4 : 6;
+        Span<bool> modules = symbol.BeginMatrix(side, side, 0, xDimension);
 
         // The bit stream fills the layers from the inside out with the last bit first. The codewords stand at the end of the layer capacity, so the outermost
-        // dominos left over at the end of the spiral are light. Layer l, of width coreWidth + 4l, holds 8 (coreWidth + 4l + 4) bits, so L layers hold
-        // 16 L^2 + (8 coreWidth + 16) L bits.
-        int capacityBits = (16 * layers * layers) + (((8 * coreWidth) + 16) * layers);
+        // dominos left over at the end of the spiral are light.
+        int capacityBits = CapacityBits(compact, layers);
+        using PooledBuffer<int> positionBuffer = new(Math.Max(1, capacityBits));
+        Span<int> positions = positionBuffer.Span[..capacityBits];
+        DataPositions(compact, layers, positions);
         int offset = capacityBits - (codewords.Length * size);
-        int index = 0;
-        for (int layer = 1; layer <= layers; layer++)
+        for (int t = offset; t < capacityBits; t++)
         {
-            int layerWidth = coreWidth + (layer * 4);
-            for (int bit = 0; bit < layerWidth * 8; bit++)
-            {
-                int t = capacityBits - 1 - index++;
-                bool dark = false;
-                if (t >= offset)
-                {
-                    int codewordBit = t - offset;
-                    dark = ((codewords[codewordBit / size] >> (size - 1 - (codewordBit % size))) & 1) == 1;
-                }
-
-                (int x, int y) = LayerPosition(coreWidth, layer, bit, layerWidth);
-                packed[packedMiddle + x - (y * packedSide)] = dark;
-            }
+            int codewordBit = t - offset;
+            modules[positions[t]] = ((codewords[codewordBit / size] >> (size - 1 - (codewordBit % size))) & 1) == 1;
         }
 
-        int side = packedSide;
-        int finder = compact ? 4 : 6;
-        Span<bool> modules;
-        if (compact)
+        if (!compact)
         {
-            // A compact symbol has no reference grid, so the packed layout is the module grid.
-            modules = symbol.BeginMatrix(side, side, 0, xDimension);
-            packed.CopyTo(modules);
-        }
-        else
-        {
-            // Section 7.1.4: the grid occupies "every location where x is a multiple of 16 or y is a multiple of 16", each module (x + y + 1) mod 2. The grid
-            // lines a layer crosses add to the side: one line for each 16 modules out from the centre, on both sides. The line count is (layers + 10.5) / 7.5 -
-            // 1 rounded down, which integers give exactly as (2 x layers + 21) / 15 - 1.
-            side = coreWidth + 1 + (layers * 4) + 2 + (2 * ((((2 * layers) + 21) / 15) - 1));
-            modules = symbol.BeginMatrix(side, side, 0, xDimension);
+            // Section 7.1.4: the grid occupies "every location where x is a multiple of 16 or y is a multiple of 16", each module (x + y + 1) mod 2.
             int half = side / 2;
-            int next = 0;
             for (int row = 0; row < side; row++)
             {
                 int y = half - row;
@@ -949,10 +1004,6 @@ internal static class AztecEncoder
                     if (x % 16 == 0 || y % 16 == 0)
                     {
                         modules[(row * side) + column] = ((x + y + 1) & 1) == 1;
-                    }
-                    else
-                    {
-                        modules[(row * side) + column] = packed[next++];
                     }
                 }
             }

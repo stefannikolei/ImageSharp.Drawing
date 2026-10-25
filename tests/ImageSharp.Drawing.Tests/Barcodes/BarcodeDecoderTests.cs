@@ -540,6 +540,59 @@ public class BarcodeDecoderTests
     }
 
     /// <summary>
+    /// An Aztec Code symbol decodes through every code set of Table 2, its punctuation pairs and its byte strings.
+    /// </summary>
+    /// <param name="text">The data.</param>
+    [Theory]
+    [InlineData("AZTEC CODE")]
+    [InlineData("lower case aztec")]
+    [InlineData("Mixed CASE with Digits 0123456789, 42.5")]
+    [InlineData("Punctuation: !\"#$%&'()*+,-./:;<=>?[]{} and pairs. Done, ok\r\n")]
+    [InlineData("Control \u0001\u0007\t and @\\^_`|~\u007F")]
+    [InlineData("Bytes \u00E9\u00E8\u00EA\u00EB\u00E0\u00E2\u00E4\u00F6\u00FC\u00DF\u0080\u00FF")]
+    public void AztecCode_RoundTripsEveryCodeSet(string text)
+    {
+        text = System.Text.RegularExpressions.Regex.Unescape(text);
+        AssertReads(new AztecCodeSymbology(), text, BarcodeFamily.Aztec, "]z0", text);
+    }
+
+    /// <summary>
+    /// An Aztec Code symbol decodes in every compact size and in full-range sizes of every codeword size, with the reference grid.
+    /// </summary>
+    /// <param name="compact">Whether the symbol is compact.</param>
+    /// <param name="layers">The number of data layers.</param>
+    [Theory]
+    [InlineData(true, 1)]
+    [InlineData(true, 2)]
+    [InlineData(true, 3)]
+    [InlineData(true, 4)]
+    [InlineData(false, 1)]
+    [InlineData(false, 5)]
+    [InlineData(false, 9)]
+    [InlineData(false, 15)]
+    [InlineData(false, 23)]
+    [InlineData(false, 32)]
+    public void AztecCode_RoundTripsEverySizeKind(bool compact, int layers)
+    {
+        BarcodeSymbology symbology = compact ? new AztecCodeCompactSymbology(23, layers) : new AztecCodeSymbology(23, layers);
+        AssertReads(symbology, "Aztec 123", BarcodeFamily.Aztec, "]z0", "Aztec 123");
+    }
+
+    /// <summary>
+    /// An Aztec Rune decodes to its value as three digits.
+    /// </summary>
+    /// <param name="value">The value.</param>
+    [Theory]
+    [InlineData(0)]
+    [InlineData(127)]
+    [InlineData(255)]
+    public void AztecRune_RoundTrips(int value)
+    {
+        string text = value.ToString(System.Globalization.CultureInfo.InvariantCulture);
+        AssertReads(new AztecRuneSymbology(), text, BarcodeFamily.AztecRune, "]zC", value.ToString("D3", System.Globalization.CultureInfo.InvariantCulture));
+    }
+
+    /// <summary>
     /// A symbol reads upright, on either side and upside down.
     /// </summary>
     /// <param name="mode">The rotation of the image.</param>
@@ -598,6 +651,9 @@ public class BarcodeDecoderTests
         yield return (new RectangularMicroQrCodeSymbology(), "rMQR rotated", BarcodeFamily.RectangularMicroQrCode, "rMQR rotated");
         yield return (new DataMatrixSymbology(), "Data Matrix rotated", BarcodeFamily.DataMatrix, "Data Matrix rotated");
         yield return (new DataMatrixRectangularSymbology(), "DM rect", BarcodeFamily.DataMatrix, "DM rect");
+        yield return (new AztecCodeSymbology(), "Aztec rotated", BarcodeFamily.Aztec, "Aztec rotated");
+        yield return (new AztecCodeSymbology(23, 6), "Aztec full range", BarcodeFamily.Aztec, "Aztec full range");
+        yield return (new AztecRuneSymbology(), "42", BarcodeFamily.AztecRune, "042");
         yield return (new IntelligentMailSymbology(), "0123456709498765432101234567891", BarcodeFamily.IntelligentMail, "0123456709498765432101234567891");
     }
 

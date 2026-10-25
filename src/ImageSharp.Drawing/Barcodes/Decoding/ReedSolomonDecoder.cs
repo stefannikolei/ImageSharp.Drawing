@@ -12,9 +12,14 @@ namespace SixLabors.ImageSharp.Drawing.Barcodes;
 internal static class ReedSolomonDecoder
 {
     /// <summary>
-    /// The largest number of check symbols a code word has: PDF417 at error correction level 8 has 512.
+    /// The largest number of check symbols a code word has: an Aztec Code symbol of 32 layers has 1664 codewords, all but one of which can be check codewords.
     /// </summary>
-    private const int MaximumCheckCount = 512;
+    private const int MaximumCheckCount = 4096;
+
+    /// <summary>
+    /// The most check symbols whose buffers go on the stack. PDF417 at error correction level 8 has 512.
+    /// </summary>
+    private const int StackCheckCount = 512;
 
     /// <summary>
     /// Corrects a code word in place. The code word is the data symbols followed by the check symbols, the first symbol as the highest term of the code word
@@ -43,7 +48,8 @@ internal static class ReedSolomonDecoder
 
         // Syndrome j is the code word polynomial at a^(r+j). A code word with no errors is a multiple of the generator, so every syndrome is zero. Horner's
         // rule evaluates the polynomial from its highest term down.
-        Span<int> syndromes = stackalloc int[checkCount];
+        bool stack = checkCount <= StackCheckCount;
+        Span<int> syndromes = stack ? stackalloc int[checkCount] : new int[checkCount];
         bool clean = true;
         for (int j = 0; j < checkCount; j++)
         {
@@ -66,9 +72,9 @@ internal static class ReedSolomonDecoder
         // The Berlekamp-Massey algorithm finds the shortest linear feedback shift register that generates the syndromes. Its connection polynomial is the
         // error locator: sigma(x) = (1 - X1 x)(1 - X2 x) ... for the error locators Xi = a^pi, where pi is the power of the term in error. Each step computes
         // the discrepancy of the register against the next syndrome and corrects the register with the copy saved at the last length change.
-        Span<int> sigma = stackalloc int[checkCount + 1];
-        Span<int> previous = stackalloc int[checkCount + 1];
-        Span<int> scratch = stackalloc int[checkCount + 1];
+        Span<int> sigma = stack ? stackalloc int[checkCount + 1] : new int[checkCount + 1];
+        Span<int> previous = stack ? stackalloc int[checkCount + 1] : new int[checkCount + 1];
+        Span<int> scratch = stack ? stackalloc int[checkCount + 1] : new int[checkCount + 1];
         sigma.Clear();
         previous.Clear();
         sigma[0] = 1;
@@ -124,7 +130,7 @@ internal static class ReedSolomonDecoder
 
         // The Chien search tries every term of the code word: the term of power p is in error when sigma(a^-p) is zero. The code word has as many roots as
         // the locator has degree, or the errors are more than the code corrects.
-        Span<int> powers = stackalloc int[length];
+        Span<int> powers = stack ? stackalloc int[length] : new int[length];
         int found = 0;
         for (int p = 0; p < n && found < length; p++)
         {
@@ -147,7 +153,7 @@ internal static class ReedSolomonDecoder
         }
 
         // The error evaluator omega(x) = S(x) sigma(x) mod x^k, where S(x) is the syndrome polynomial with syndrome j at x^j.
-        Span<int> omega = stackalloc int[checkCount];
+        Span<int> omega = stack ? stackalloc int[checkCount] : new int[checkCount];
         for (int i = 0; i < checkCount; i++)
         {
             int value = 0;
