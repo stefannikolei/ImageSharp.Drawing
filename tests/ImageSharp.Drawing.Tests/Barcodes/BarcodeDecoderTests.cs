@@ -480,6 +480,66 @@ public class BarcodeDecoderTests
         => AssertReads(new RectangularMicroQrCodeSymbology(level, version), text, BarcodeFamily.RectangularMicroQrCode, "]Q1", text);
 
     /// <summary>
+    /// A Data Matrix symbol decodes in every encodation the encoder chooses: ASCII with digit pairs and Upper Shift, C40, Text, X12, EDIFACT and Base 256.
+    /// </summary>
+    /// <param name="text">The data.</param>
+    [Theory]
+    [InlineData("DATA MATRIX")]
+    [InlineData("12345678901234567890")]
+    [InlineData("ABCDEFGHIJKLMNOPQRSTUVWXYZ 0123456789")]
+    [InlineData("data matrix in text encodation with small letters")]
+    [InlineData("X12*X12>X12\rX12*X12>X12\r")]
+    [InlineData("EDIFACT=:;<>?@[\\]^_ EDIFACT=:;<>?@[\\]^_")]
+    [InlineData("Base 256 \u00E9\u00E8\u00EA\u00EB\u00E0\u00E2\u00E4\u00F6\u00FC\u00DF\u0001\u0002\u0003")]
+    [InlineData("Mixed: abc ABC 123 \u00E9 !\"#$%&'()*+,-./")]
+    public void DataMatrix_RoundTripsEveryEncodation(string text)
+    {
+        text = System.Text.RegularExpressions.Regex.Unescape(text);
+        AssertReads(new DataMatrixSymbology(), text, BarcodeFamily.DataMatrix, "]d1", text);
+    }
+
+    /// <summary>
+    /// A Data Matrix symbol decodes in sizes of one to thirty-six data regions, square and rectangular, with the rectangular extension.
+    /// </summary>
+    /// <param name="rows">The rows.</param>
+    /// <param name="columns">The columns.</param>
+    [Theory]
+    [InlineData(10, 10)]
+    [InlineData(26, 26)]
+    [InlineData(32, 32)]
+    [InlineData(64, 64)]
+    [InlineData(120, 120)]
+    [InlineData(144, 144)]
+    [InlineData(8, 18)]
+    [InlineData(16, 48)]
+    public void DataMatrix_RoundTripsEverySizeKind(int rows, int columns)
+        => AssertReads(new DataMatrixSymbology(rows, columns), "DM1", BarcodeFamily.DataMatrix, "]d1", "DM1");
+
+    /// <summary>
+    /// A Data Matrix symbol of the rectangular extension decodes.
+    /// </summary>
+    /// <param name="rows">The rows.</param>
+    /// <param name="columns">The columns.</param>
+    [Theory]
+    [InlineData(8, 48)]
+    [InlineData(8, 144)]
+    [InlineData(12, 88)]
+    [InlineData(20, 44)]
+    [InlineData(26, 64)]
+    public void DataMatrixRectangularExtension_RoundTrips(int rows, int columns)
+        => AssertReads(new DataMatrixRectangularExtensionSymbology(rows, columns), "DMRE 1", BarcodeFamily.DataMatrix, "]d1", "DMRE 1");
+
+    /// <summary>
+    /// A GS1 Data Matrix symbol transmits its element strings with the symbology identifier ]d2, and a message in format 06 its header and trailer.
+    /// </summary>
+    [Fact]
+    public void DataMatrix_ReadsGs1AndMacroMessages()
+    {
+        AssertReads(new Gs1DataMatrixSymbology(), "(01)09521234543213(10)ABC123(21)XYZ", BarcodeFamily.DataMatrix, "]d2", "010952123454321310ABC123\u001D21XYZ");
+        AssertReads(new DataMatrixSymbology(), "[)>\u001E06\u001D12345 ABC\u001E\u0004", BarcodeFamily.DataMatrix, "]d1", "[)>\u001E06\u001D12345 ABC\u001E\u0004");
+    }
+
+    /// <summary>
     /// A symbol reads upright, on either side and upside down.
     /// </summary>
     /// <param name="mode">The rotation of the image.</param>
@@ -536,6 +596,8 @@ public class BarcodeDecoderTests
         yield return (new QrCodeSymbology(), "QR rotated", BarcodeFamily.QrCode, "QR rotated");
         yield return (new MicroQrCodeSymbology(), "Micro QR", BarcodeFamily.MicroQrCode, "Micro QR");
         yield return (new RectangularMicroQrCodeSymbology(), "rMQR rotated", BarcodeFamily.RectangularMicroQrCode, "rMQR rotated");
+        yield return (new DataMatrixSymbology(), "Data Matrix rotated", BarcodeFamily.DataMatrix, "Data Matrix rotated");
+        yield return (new DataMatrixRectangularSymbology(), "DM rect", BarcodeFamily.DataMatrix, "DM rect");
         yield return (new IntelligentMailSymbology(), "0123456709498765432101234567891", BarcodeFamily.IntelligentMail, "0123456709498765432101234567891");
     }
 

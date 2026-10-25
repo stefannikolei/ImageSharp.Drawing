@@ -77,6 +77,7 @@ public static class BarcodeDecoder
     [
         new QrCodeReader(),
         new MicroQrReader(),
+        new DataMatrixReader(),
     ];
 
     /// <summary>

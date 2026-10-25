@@ -33,7 +33,8 @@ public class BarcodeDecodeTests
         | BarcodeFamily.Code128 | BarcodeFamily.Code39 | BarcodeFamily.Pzn | BarcodeFamily.Code93 | BarcodeFamily.Codabar | BarcodeFamily.Interleaved2Of5
         | BarcodeFamily.Msi | BarcodeFamily.Pharmacode | BarcodeFamily.Telepen | BarcodeFamily.DataBar | BarcodeFamily.DataBarLimited
         | BarcodeFamily.DataBarExpanded | BarcodeFamily.IntelligentMail | BarcodeFamily.Pdf417
-        | BarcodeFamily.MicroPdf417 | BarcodeFamily.QrCode | BarcodeFamily.MicroQrCode | BarcodeFamily.RectangularMicroQrCode;
+        | BarcodeFamily.MicroPdf417 | BarcodeFamily.QrCode | BarcodeFamily.MicroQrCode | BarcodeFamily.RectangularMicroQrCode
+        | BarcodeFamily.DataMatrix;
 
     /// <summary>
     /// Gets the resolutions at which a module of one point draws at 1 to 7 pixels. The module draws at a whole number of pixels, so these are all the

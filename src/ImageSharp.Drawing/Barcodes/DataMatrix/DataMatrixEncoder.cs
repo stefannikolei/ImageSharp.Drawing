@@ -36,7 +36,7 @@ internal static class DataMatrixEncoder
     /// <summary>
     /// The number of symbol sizes in <see cref="SizeTable"/>.
     /// </summary>
-    private const int SizeCount = 48;
+    public const int SizeCount = 48;
 
     /// <summary>
     /// The number of values of one symbol size in <see cref="SizeTable"/>.
@@ -46,7 +46,7 @@ internal static class DataMatrixEncoder
     /// <summary>
     /// The field of the error correction: GF(2^8) with the primitive polynomial x^8 + x^5 + x^3 + x^2 + 1, 301 decimal.
     /// </summary>
-    private static readonly GaloisField Field = new(256, 301);
+    public static readonly GaloisField Field = new(256, 301);
 
     /// <summary>
     /// Gets the symbol sizes, <see cref="SizeFields"/> values each: the rows and the columns with the finder pattern, the data regions down and across, the
@@ -126,6 +126,69 @@ internal static class DataMatrixEncoder
         }
 
         return false;
+    }
+
+    /// <summary>
+    /// Returns the size of a module count.
+    /// </summary>
+    /// <param name="rows">The number of rows.</param>
+    /// <param name="columns">The number of columns.</param>
+    /// <param name="size">The size.</param>
+    /// <returns><see langword="true"/> when a size has the count.</returns>
+    public static bool TryGetSize(int rows, int columns, out DataMatrixSize size)
+    {
+        for (int i = 0; i < SizeCount; i++)
+        {
+            size = new DataMatrixSize(i);
+            if (size.Rows == rows && size.Columns == columns)
+            {
+                return true;
+            }
+        }
+
+        size = default;
+        return false;
+    }
+
+    /// <summary>
+    /// Writes the module of the mapping matrix that each bit of each codeword of a size takes, the inverse of the placement: eight entries per codeword, the
+    /// most significant bit first, each the row-major index of a mapping matrix module.
+    /// </summary>
+    /// <param name="size">The symbol size.</param>
+    /// <param name="positions">The positions to write, eight for each data and error correction codeword.</param>
+    public static void CodewordPositions(DataMatrixSize size, Span<int> positions)
+    {
+        int count = size.MappingRows * size.MappingColumns;
+        sbyte[] mapping = new sbyte[count];
+        int[] codewords = new int[(count / 8) + 1];
+        new MappingMatrix(mapping, size.MappingRows, size.MappingColumns, positions).Place(codewords);
+    }
+
+    /// <summary>
+    /// Returns whether a module of a size belongs to a data region rather than to its finder or alignment pattern, and the index of the module in the mapping
+    /// matrix, the inverse of the frame.
+    /// </summary>
+    /// <param name="size">The symbol size.</param>
+    /// <param name="row">The row of the module in the symbol.</param>
+    /// <param name="column">The column of the module in the symbol.</param>
+    /// <param name="index">The row-major index of the module in the mapping matrix.</param>
+    /// <returns><see langword="true"/> for a module of a data region.</returns>
+    public static bool TryMapModule(DataMatrixSize size, int row, int column, out int index)
+    {
+        int regionRows = size.MappingRows / size.RegionsDown;
+        int regionColumns = size.MappingColumns / size.RegionsAcross;
+        int regionRow = row % (regionRows + 2);
+        int regionColumn = column % (regionColumns + 2);
+        index = -1;
+        if (regionRow == 0 || regionRow == regionRows + 1 || regionColumn == 0 || regionColumn == regionColumns + 1)
+        {
+            return false;
+        }
+
+        int mappingRow = ((row / (regionRows + 2)) * regionRows) + regionRow - 1;
+        int mappingColumn = ((column / (regionColumns + 2)) * regionColumns) + regionColumn - 1;
+        index = (mappingRow * size.MappingColumns) + mappingColumn;
+        return true;
     }
 
     /// <summary>
@@ -436,16 +499,34 @@ internal static class DataMatrixEncoder
         private readonly int columns;
 
         /// <summary>
+        /// The module each bit of each codeword takes, eight per codeword, or empty when the placement does not record them.
+        /// </summary>
+        private readonly Span<int> positions;
+
+        /// <summary>
         /// Initializes a new instance of the <see cref="MappingMatrix"/> struct.
         /// </summary>
         /// <param name="modules">The modules, row by row, <paramref name="rows"/> x <paramref name="columns"/> long.</param>
         /// <param name="rows">The number of rows of the mapping matrix.</param>
         /// <param name="columns">The number of columns of the mapping matrix.</param>
         public MappingMatrix(Span<sbyte> modules, int rows, int columns)
+            : this(modules, rows, columns, default)
+        {
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="MappingMatrix"/> struct that records the module of every bit it places.
+        /// </summary>
+        /// <param name="modules">The modules, row by row, <paramref name="rows"/> x <paramref name="columns"/> long.</param>
+        /// <param name="rows">The number of rows of the mapping matrix.</param>
+        /// <param name="columns">The number of columns of the mapping matrix.</param>
+        /// <param name="positions">The positions to write, eight per codeword, or empty.</param>
+        public MappingMatrix(Span<sbyte> modules, int rows, int columns, Span<int> positions)
         {
             this.modules = modules;
             this.rows = rows;
             this.columns = columns;
+            this.positions = positions;
         }
 
         /// <summary>
@@ -471,7 +552,8 @@ internal static class DataMatrixEncoder
                 if (row == rows && column == 0)
                 {
                     this.PlaceCorner(
-                        codewords[next++],
+                        codewords[next],
+                        next++,
                         [
                             rows - 1, 0, rows - 1, 1, rows - 1, 2, 0, columns - 2,
                             0, columns - 1, 1, columns - 1, 2, columns - 1, 3, columns - 1
@@ -481,7 +563,8 @@ internal static class DataMatrixEncoder
                 if (row == rows - 2 && column == 0 && columns % 4 != 0)
                 {
                     this.PlaceCorner(
-                        codewords[next++],
+                        codewords[next],
+                        next++,
                         [
                             rows - 3, 0, rows - 2, 0, rows - 1, 0, 0, columns - 4,
                             0, columns - 3, 0, columns - 2, 0, columns - 1, 1, columns - 1
@@ -491,7 +574,8 @@ internal static class DataMatrixEncoder
                 if (row == rows - 2 && column == 0 && columns % 8 == 4)
                 {
                     this.PlaceCorner(
-                        codewords[next++],
+                        codewords[next],
+                        next++,
                         [
                             rows - 3, 0, rows - 2, 0, rows - 1, 0, 0, columns - 2,
                             0, columns - 1, 1, columns - 1, 2, columns - 1, 3, columns - 1
@@ -501,7 +585,8 @@ internal static class DataMatrixEncoder
                 if (row == rows + 4 && column == 2 && columns % 8 == 0)
                 {
                     this.PlaceCorner(
-                        codewords[next++],
+                        codewords[next],
+                        next++,
                         [
                             rows - 1, 0, rows - 1, columns - 1, 0, columns - 3, 0, columns - 2,
                             0, columns - 1, 1, columns - 3, 1, columns - 2, 1, columns - 1
@@ -514,7 +599,8 @@ internal static class DataMatrixEncoder
                 {
                     if (row < rows && column >= 0 && matrix[(row * columns) + column] < 0)
                     {
-                        this.PlaceShape(row, column, codewords[next++]);
+                        this.PlaceShape(row, column, codewords[next], next);
+                        next++;
                     }
 
                     row -= 2;
@@ -531,7 +617,8 @@ internal static class DataMatrixEncoder
                 {
                     if (row >= 0 && column < columns && matrix[(row * columns) + column] < 0)
                     {
-                        this.PlaceShape(row, column, codewords[next++]);
+                        this.PlaceShape(row, column, codewords[next], next);
+                        next++;
                     }
 
                     row += 2;
@@ -563,29 +650,31 @@ internal static class DataMatrixEncoder
         /// <param name="row">The row of the lower right module.</param>
         /// <param name="column">The column of the lower right module.</param>
         /// <param name="codeword">The codeword.</param>
-        private void PlaceShape(int row, int column, int codeword)
+        /// <param name="index">The index of the codeword.</param>
+        private void PlaceShape(int row, int column, int codeword, int index)
         {
             // The bits go from the most significant, at the top left of the shape, row by row to the least significant at its lower right.
-            this.PlaceBit(row - 2, column - 2, codeword, 0);
-            this.PlaceBit(row - 2, column - 1, codeword, 1);
-            this.PlaceBit(row - 1, column - 2, codeword, 2);
-            this.PlaceBit(row - 1, column - 1, codeword, 3);
-            this.PlaceBit(row - 1, column, codeword, 4);
-            this.PlaceBit(row, column - 2, codeword, 5);
-            this.PlaceBit(row, column - 1, codeword, 6);
-            this.PlaceBit(row, column, codeword, 7);
+            this.PlaceBit(row - 2, column - 2, codeword, index, 0);
+            this.PlaceBit(row - 2, column - 1, codeword, index, 1);
+            this.PlaceBit(row - 1, column - 2, codeword, index, 2);
+            this.PlaceBit(row - 1, column - 1, codeword, index, 3);
+            this.PlaceBit(row - 1, column, codeword, index, 4);
+            this.PlaceBit(row, column - 2, codeword, index, 5);
+            this.PlaceBit(row, column - 1, codeword, index, 6);
+            this.PlaceBit(row, column, codeword, index, 7);
         }
 
         /// <summary>
         /// Places one codeword in a corner shape.
         /// </summary>
         /// <param name="codeword">The codeword.</param>
+        /// <param name="index">The index of the codeword.</param>
         /// <param name="positions">The row and the column of each of the eight modules, the most significant bit first.</param>
-        private void PlaceCorner(int codeword, ReadOnlySpan<int> positions)
+        private void PlaceCorner(int codeword, int index, ReadOnlySpan<int> positions)
         {
             for (int bit = 0; bit < 8; bit++)
             {
-                this.PlaceBit(positions[2 * bit], positions[(2 * bit) + 1], codeword, bit);
+                this.PlaceBit(positions[2 * bit], positions[(2 * bit) + 1], codeword, index, bit);
             }
         }
 
@@ -595,8 +684,9 @@ internal static class DataMatrixEncoder
         /// <param name="row">The row, which can be outside the matrix.</param>
         /// <param name="column">The column, which can be outside the matrix.</param>
         /// <param name="codeword">The codeword.</param>
+        /// <param name="index">The index of the codeword.</param>
         /// <param name="bit">The bit, 0 for the most significant.</param>
-        private void PlaceBit(int row, int column, int codeword, int bit)
+        private void PlaceBit(int row, int column, int codeword, int index, int bit)
         {
             // A shape that crosses the top edge continues at the bottom, and one that crosses the left edge continues at the right. The continuation also moves
             // along the other axis by 4 - ((n + 4) mod 8), where n is the length of the edge it crossed.
@@ -622,13 +712,17 @@ internal static class DataMatrixEncoder
 
             // Bit 0 is the most significant bit of the codeword, so it is bit 7 of the byte.
             this.modules[(row * columns) + column] = (sbyte)((codeword >> (7 - bit)) & 1);
+            if (!this.positions.IsEmpty)
+            {
+                this.positions[(index * 8) + bit] = (row * columns) + column;
+            }
         }
     }
 
     /// <summary>
     /// The dimensions and error correction of one symbol size, read from <see cref="SizeTable"/>.
     /// </summary>
-    private readonly struct DataMatrixSize
+    public readonly struct DataMatrixSize
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="DataMatrixSize"/> struct from one size of <see cref="SizeTable"/>.
