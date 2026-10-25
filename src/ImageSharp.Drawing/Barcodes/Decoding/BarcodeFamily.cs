@@ -6,7 +6,8 @@ namespace SixLabors.ImageSharp.Drawing.Barcodes;
 /// <summary>
 /// The barcode families that <see cref="BarcodeDecoder"/> reads. A family is one symbology as a scanner transmits it. A symbology that only applies rules to
 /// the data of another symbology, such as <see cref="IsbnSymbology"/> on EAN-13 or <see cref="HibcCode128Symbology"/> on Code 128, decodes as the family it
-/// draws with. The values are flags, so the options of the decoder can name several families.
+/// draws with. The values are flags, so the options of the decoder can name several families. <see cref="FlattermarkenSymbology"/> has no family: its marks
+/// have no start, stop or quiet zone, so a mark tells its digit only from the edge of the sheet, which an image does not show.
 /// </summary>
 [Flags]
 public enum BarcodeFamily : ulong
@@ -162,11 +163,6 @@ public enum BarcodeFamily : ulong
     PosiCode = 1UL << 28,
 
     /// <summary>
-    /// Flattermarken, the marks on the folds of printed sheets.
-    /// </summary>
-    Flattermarken = 1UL << 29,
-
-    /// <summary>
     /// The Facing Identification Marks A to E of the USPS.
     /// </summary>
     FacingIdentificationMark = 1UL << 30,
@@ -306,7 +302,7 @@ public enum BarcodeFamily : ulong
     /// </summary>
     Linear = Ean13 | Ean8 | UpcA | UpcE | EanAddOn | Code128 | Code39 | Code32 | Pzn | Code93 | Codabar | Interleaved2Of5 | Industrial2Of5 | Iata2Of5
         | Matrix2Of5 | Datalogic2Of5 | Coop2Of5 | Code11 | Msi | Plessey | Telepen | Pharmacode | ChannelCode | DataBar | DataBarLimited | DataBarExpanded
-        | Bc412 | PosiCode | Flattermarken | FacingIdentificationMark,
+        | Bc412 | PosiCode | FacingIdentificationMark,
 
     /// <summary>
     /// The height modulated families: the postal codes and the two-track Pharmacode.

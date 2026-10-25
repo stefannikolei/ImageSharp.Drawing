@@ -93,7 +93,8 @@ public class BarcodeDecoderTests
     {
         using Image<L8> image = DrawImage(new TelepenNumericSymbology(), "123X", new BarcodeOptions());
 
-        DecodedBarcode result = Assert.Single(BarcodeDecoder.Decode(image, new BarcodeDecoderOptions { Families = BarcodeFamily.Telepen, TelepenNumeric = true }));
+        BarcodeDecoderOptions options = new() { Families = BarcodeFamily.Telepen, TelepenNumeric = true };
+        DecodedBarcode result = Assert.Single(BarcodeDecoder.Decode(image, options));
         Assert.Equal("123X", result.Text);
         Assert.Equal("]B1", result.SymbologyIdentifier);
     }
@@ -367,7 +368,11 @@ public class BarcodeDecoderTests
     [InlineData(Gs1CompositeComponent.CcB, 3, "(90)5D123(8004)95012345ABC(21)7", "905D123\u001D800495012345ABC\u001D217")]
     [InlineData(Gs1CompositeComponent.CcB, 2, "(10)ABCD123456(410)3898765432108", "10ABCD123456\u001D4103898765432108")]
     [InlineData(Gs1CompositeComponent.CcC, 3, "(10)ABCD123456(410)3898765432108", "10ABCD123456\u001D4103898765432108")]
-    [InlineData(Gs1CompositeComponent.CcC, 5, "(91)1A2B3C4D5E(92)abcdefghijklmnopqrstuvwxyz(93)0123456789", "911A2B3C4D5E\u001D92abcdefghijklmnopqrstuvwxyz\u001D930123456789")]
+    [InlineData(
+        Gs1CompositeComponent.CcC,
+        5,
+        "(91)1A2B3C4D5E(92)abcdefghijklmnopqrstuvwxyz(93)0123456789",
+        "911A2B3C4D5E\u001D92abcdefghijklmnopqrstuvwxyz\u001D930123456789")]
     public void Gs1CompositeComponent_RoundTrips(Gs1CompositeComponent component, int columns, string text, string expected)
     {
         expected = System.Text.RegularExpressions.Regex.Unescape(expected);
@@ -390,7 +395,13 @@ public class BarcodeDecoderTests
     [InlineData("Limited", "(01)13112345678906", "(17)010615(10)A123456", BarcodeFamily.DataBarLimited, "0113112345678906", "1701061510A123456")]
     [InlineData("Expanded", "(01)93712345678904(3103)001234", "(91)1A2B3C4D5E", BarcodeFamily.DataBarExpanded, "01937123456789043103001234", "911A2B3C4D5E")]
     [InlineData("Gs1128", "(01)03212345678906", "(21)A1B2C3D4E5F6G7H8", BarcodeFamily.Code128, "0103212345678906", "21A1B2C3D4E5F6G7H8")]
-    [InlineData("Gs1128CcC", "(01)93812345678901", "(10)ABCD123456(410)3898765432108", BarcodeFamily.Code128, "0193812345678901", "10ABCD123456\u001D4103898765432108")]
+    [InlineData(
+        "Gs1128CcC",
+        "(01)93812345678901",
+        "(10)ABCD123456(410)3898765432108",
+        BarcodeFamily.Code128,
+        "0193812345678901",
+        "10ABCD123456\u001D4103898765432108")]
     public void Gs1Composite_ReadsBothComponents(
         string kind,
         string linear,
@@ -418,7 +429,8 @@ public class BarcodeDecoderTests
         image.Mutate(x => x.Paint(canvas => canvas.DrawBarcode(symbology, options, origin, linear, component)));
 
         string[] results = [.. BarcodeDecoder.Decode(image).Select(r => $"{r.Family}:{r.Text}").Order(StringComparer.Ordinal)];
-        string[] expected = [.. new[] { $"{family}:{linearExpected}", $"{BarcodeFamily.Gs1CompositeComponent}:{componentExpected}" }.Order(StringComparer.Ordinal)];
+        string[] pair = [$"{family}:{linearExpected}", $"{BarcodeFamily.Gs1CompositeComponent}:{componentExpected}"];
+        string[] expected = [.. pair.Order(StringComparer.Ordinal)];
         Assert.Equal(expected, results);
     }
 
@@ -442,7 +454,12 @@ public class BarcodeDecoderTests
     /// </summary>
     [Fact]
     public void Gs1QrCode_ReadsTheElementStrings()
-        => AssertReads(new Gs1QrCodeSymbology(), "(01)09521234543213(10)ABC123(21)XYZ789", BarcodeFamily.QrCode, "]Q3", "010952123454321310ABC123\u001D21XYZ789");
+        => AssertReads(
+            new Gs1QrCodeSymbology(),
+            "(01)09521234543213(10)ABC123(21)XYZ789",
+            BarcodeFamily.QrCode,
+            "]Q3",
+            "010952123454321310ABC123\u001D21XYZ789");
 
     /// <summary>
     /// A Micro QR Code symbol decodes in every version and at every level the version has.
@@ -535,8 +552,18 @@ public class BarcodeDecoderTests
     [Fact]
     public void DataMatrix_ReadsGs1AndMacroMessages()
     {
-        AssertReads(new Gs1DataMatrixSymbology(), "(01)09521234543213(10)ABC123(21)XYZ", BarcodeFamily.DataMatrix, "]d2", "010952123454321310ABC123\u001D21XYZ");
-        AssertReads(new DataMatrixSymbology(), "[)>\u001E06\u001D12345 ABC\u001E\u0004", BarcodeFamily.DataMatrix, "]d1", "[)>\u001E06\u001D12345 ABC\u001E\u0004");
+        AssertReads(
+            new Gs1DataMatrixSymbology(),
+            "(01)09521234543213(10)ABC123(21)XYZ",
+            BarcodeFamily.DataMatrix,
+            "]d2",
+            "010952123454321310ABC123\u001D21XYZ");
+        AssertReads(
+            new DataMatrixSymbology(),
+            "[)>\u001E06\u001D12345 ABC\u001E\u0004",
+            BarcodeFamily.DataMatrix,
+            "]d1",
+            "[)>\u001E06\u001D12345 ABC\u001E\u0004");
     }
 
     /// <summary>

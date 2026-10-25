@@ -10,12 +10,12 @@ public sealed class BarcodeDecoderOptions
 {
     /// <summary>
     /// The families the decoder reads by default: every family except those whose symbols carry no check of their own. Any sequence of bars reads as a
-    /// Pharmacode, a two-track Pharmacode, Flattermarken or a DAFT symbol, and a Facing Identification Mark is a few bars, so these families read only when
+    /// Pharmacode, a two-track Pharmacode or a DAFT symbol, and a Facing Identification Mark is a few bars, so these families read only when
     /// the options name them. An EAN/UPC add-on on its own is a guard and two or five digits that only their number sets check, which parts of other symbols
     /// and the separator patterns of GS1 Composite symbols match, so it also reads only when the options name it.
     /// </summary>
     public const BarcodeFamily DefaultFamilies = BarcodeFamily.All
-        & ~(BarcodeFamily.Pharmacode | BarcodeFamily.TwoTrackPharmacode | BarcodeFamily.Flattermarken | BarcodeFamily.FacingIdentificationMark
+        & ~(BarcodeFamily.Pharmacode | BarcodeFamily.TwoTrackPharmacode | BarcodeFamily.FacingIdentificationMark
             | BarcodeFamily.Daft | BarcodeFamily.EanAddOn);
 
     /// <summary>

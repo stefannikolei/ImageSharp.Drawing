@@ -27,17 +27,6 @@ public class BarcodeDecodeTests
         + "\n\n\n\n\n\n\nNON\n\nSpende 100 € Ș ț ő ÿ\nEPD\n\n\n";
 
     /// <summary>
-    /// The families <see cref="BarcodeDecoder"/> reads so far.
-    /// </summary>
-    private const BarcodeFamily ImplementedFamilies = BarcodeFamily.Ean13 | BarcodeFamily.Ean8 | BarcodeFamily.UpcA | BarcodeFamily.UpcE
-        | BarcodeFamily.Code128 | BarcodeFamily.Code39 | BarcodeFamily.Pzn | BarcodeFamily.Code93 | BarcodeFamily.Codabar | BarcodeFamily.Interleaved2Of5
-        | BarcodeFamily.Msi | BarcodeFamily.Pharmacode | BarcodeFamily.Telepen | BarcodeFamily.DataBar | BarcodeFamily.DataBarLimited
-        | BarcodeFamily.DataBarExpanded | BarcodeFamily.IntelligentMail | BarcodeFamily.Pdf417
-        | BarcodeFamily.MicroPdf417 | BarcodeFamily.QrCode | BarcodeFamily.MicroQrCode | BarcodeFamily.RectangularMicroQrCode
-        | BarcodeFamily.DataMatrix | BarcodeFamily.Aztec | BarcodeFamily.AztecRune
-        | BarcodeFamily.MaxiCode | BarcodeFamily.HanXin | BarcodeFamily.CodeOne | BarcodeFamily.DotCode;
-
-    /// <summary>
     /// Gets the resolutions at which a module of one point draws at 1 to 7 pixels. The module draws at a whole number of pixels, so these are all the
     /// module widths from 72 to 504 dots per inch.
     /// </summary>
@@ -1045,11 +1034,6 @@ public class BarcodeDecodeTests
         string identifier,
         string expected)
     {
-        if ((options.Families & ImplementedFamilies) == 0)
-        {
-            return;
-        }
-
         using Image<L8> image = Image.LoadPixelData<L8>(pixels, width, height);
         IReadOnlyList<DecodedBarcode> results = BarcodeDecoder.Decode(image, options);
 
