@@ -1456,7 +1456,7 @@ internal static class DotCodeEncoder
         }
 
         /// <summary>
-        /// Writes a run of code set B characters after a shift, a CR LF pair as one.
+        /// Writes a run of code set B characters after a shift, a CR LF pair as one. The run can hold an FNC1, which has its own codeword.
         /// </summary>
         /// <param name="run">The number of characters.</param>
         private void AddBRun(int run)
@@ -1464,7 +1464,7 @@ internal static class DotCodeEncoder
             for (int k = 0; k < run; k++)
             {
                 int c = this.message[this.position];
-                this.Add(c == '\r' ? BCrLf : BValue(c));
+                this.Add(c == Fnc1 ? Fnc1Codeword : c == '\r' ? BCrLf : BValue(c));
                 this.position += c == '\r' ? 2 : 1;
             }
         }

@@ -756,6 +756,7 @@ public class BarcodeDecoderTests
     [InlineData("(01)09521234543213(17)240101(10)ABC123", "01095212345432131724010110ABC123")]
     [InlineData("(10)ABC123(21)XYZ789", "10ABC123\u001D21XYZ789")]
     [InlineData("(01)09521234543213(3103)000123", "01095212345432133103000123")]
+    [InlineData("(10)A(21)12", "10A\\u001D2112")]
     public void Gs1DotCode_ReadsTheElementStrings(string text, string expected)
         => AssertReads(new Gs1DotCodeSymbology(), text, BarcodeFamily.DotCode, "]J1", System.Text.RegularExpressions.Regex.Unescape(expected));
 
