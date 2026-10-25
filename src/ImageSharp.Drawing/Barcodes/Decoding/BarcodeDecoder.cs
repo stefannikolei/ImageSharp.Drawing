@@ -64,6 +64,7 @@ public static class BarcodeDecoder
     [
         new Pdf417Reader(),
         new MicroPdf417Reader(),
+        new Gs1CompositeComponentReader(),
         new Code16KReader(),
         new Code49Reader(),
         new CodablockFReader(),

@@ -2,6 +2,7 @@
 // Licensed under the Six Labors Split License.
 
 using SixLabors.ImageSharp.Drawing.Barcodes;
+using SixLabors.ImageSharp.Drawing.Processing;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
 
@@ -346,6 +347,82 @@ public class BarcodeDecoderTests
         => AssertReads(new HibcCodablockFSymbology(), "A123BJC5D6E71", BarcodeFamily.CodablockF, "]O4", "+A123BJC5D6E71G");
 
     /// <summary>
+    /// A GS1 Composite 2D component decodes to its element strings in CC-A, CC-B and CC-C, through every encodation method and mode of its bit stream.
+    /// </summary>
+    /// <param name="component">The 2D component.</param>
+    /// <param name="columns">The data columns.</param>
+    /// <param name="text">The element strings.</param>
+    /// <param name="expected">The transmitted data, a group separator after a variable length element string.</param>
+    [Theory]
+    [InlineData(Gs1CompositeComponent.CcA, 2, "(21)A12345678", "21A12345678")]
+    [InlineData(Gs1CompositeComponent.CcA, 3, "(11)990102", "11990102")]
+    [InlineData(Gs1CompositeComponent.CcA, 4, "(17)010615(10)A123456", "1701061510A123456")]
+    [InlineData(Gs1CompositeComponent.CcA, 4, "(17)010200(10)ABC(21)123", "1701020010ABC\u001D21123")]
+    [InlineData(Gs1CompositeComponent.CcA, 3, "(15)021231", "15021231")]
+    [InlineData(Gs1CompositeComponent.CcA, 4, "(99)1234-abcd", "991234-abcd")]
+    [InlineData(Gs1CompositeComponent.CcA, 4, "(90)12BXYZ123", "9012BXYZ123")]
+    [InlineData(Gs1CompositeComponent.CcA, 4, "(90)7QLETTERS", "907QLETTERS")]
+    [InlineData(Gs1CompositeComponent.CcA, 4, "(90)3H12345", "903H12345")]
+    [InlineData(Gs1CompositeComponent.CcB, 4, "(90)999AXYZ(21)12345", "90999AXYZ\u001D2112345")]
+    [InlineData(Gs1CompositeComponent.CcB, 3, "(90)5D123(8004)95012345ABC(21)7", "905D123\u001D800495012345ABC\u001D217")]
+    [InlineData(Gs1CompositeComponent.CcB, 2, "(10)ABCD123456(410)3898765432108", "10ABCD123456\u001D4103898765432108")]
+    [InlineData(Gs1CompositeComponent.CcC, 3, "(10)ABCD123456(410)3898765432108", "10ABCD123456\u001D4103898765432108")]
+    [InlineData(Gs1CompositeComponent.CcC, 5, "(91)1A2B3C4D5E(92)abcdefghijklmnopqrstuvwxyz(93)0123456789", "911A2B3C4D5E\u001D92abcdefghijklmnopqrstuvwxyz\u001D930123456789")]
+    public void Gs1CompositeComponent_RoundTrips(Gs1CompositeComponent component, int columns, string text, string expected)
+    {
+        expected = System.Text.RegularExpressions.Regex.Unescape(expected);
+        AssertReads(new Gs1CompositeComponentSymbology(component, columns), text, BarcodeFamily.Gs1CompositeComponent, "]e0", expected);
+    }
+
+    /// <summary>
+    /// With the default families a GS1 Composite symbol reads as its linear component and its 2D component.
+    /// </summary>
+    /// <param name="kind">The composite symbology.</param>
+    /// <param name="linear">The data of the linear component.</param>
+    /// <param name="component">The element strings of the 2D component.</param>
+    /// <param name="family">The family of the linear component.</param>
+    /// <param name="linearExpected">The transmitted data of the linear component.</param>
+    /// <param name="componentExpected">The transmitted data of the 2D component.</param>
+    [Theory]
+    [InlineData("Ean13", "3312345678903", "(99)1234-abcd", BarcodeFamily.Ean13, "3312345678903", "991234-abcd")]
+    [InlineData("UpcE", "01234558", "(15)021231", BarcodeFamily.UpcE, "0012345000058", "15021231")]
+    [InlineData("Omnidirectional", "(01)03612345678904", "(11)990102", BarcodeFamily.DataBar, "0103612345678904", "11990102")]
+    [InlineData("Limited", "(01)13112345678906", "(17)010615(10)A123456", BarcodeFamily.DataBarLimited, "0113112345678906", "1701061510A123456")]
+    [InlineData("Expanded", "(01)93712345678904(3103)001234", "(91)1A2B3C4D5E", BarcodeFamily.DataBarExpanded, "01937123456789043103001234", "911A2B3C4D5E")]
+    [InlineData("Gs1128", "(01)03212345678906", "(21)A1B2C3D4E5F6G7H8", BarcodeFamily.Code128, "0103212345678906", "21A1B2C3D4E5F6G7H8")]
+    [InlineData("Gs1128CcC", "(01)93812345678901", "(10)ABCD123456(410)3898765432108", BarcodeFamily.Code128, "0193812345678901", "10ABCD123456\u001D4103898765432108")]
+    public void Gs1Composite_ReadsBothComponents(
+        string kind,
+        string linear,
+        string component,
+        BarcodeFamily family,
+        string linearExpected,
+        string componentExpected)
+    {
+        componentExpected = System.Text.RegularExpressions.Regex.Unescape(componentExpected);
+        CompositeBarcodeSymbology symbology = kind switch
+        {
+            "Ean13" => new Ean13CompositeSymbology(),
+            "UpcE" => new UpcECompositeSymbology(),
+            "Omnidirectional" => new Gs1DataBarOmnidirectionalCompositeSymbology(),
+            "Limited" => new Gs1DataBarLimitedCompositeSymbology(),
+            "Expanded" => new Gs1DataBarExpandedCompositeSymbology(),
+            "Gs1128" => new Gs1128CompositeSymbology(),
+            _ => new Gs1128CompositeSymbology(Gs1CompositeComponent.CcC),
+        };
+
+        PointF origin = new(20, 20);
+        BarcodeOptions options = new();
+        RectangleF bounds = BarcodeMeasurer.MeasureRenderableBounds(symbology, options, origin, linear, component);
+        using Image<L8> image = new((int)MathF.Ceiling(bounds.Right) + 20, (int)MathF.Ceiling(bounds.Bottom) + 20, new L8(255));
+        image.Mutate(x => x.Paint(canvas => canvas.DrawBarcode(symbology, options, origin, linear, component)));
+
+        string[] results = [.. BarcodeDecoder.Decode(image).Select(r => $"{r.Family}:{r.Text}").Order(StringComparer.Ordinal)];
+        string[] expected = [.. new[] { $"{family}:{linearExpected}", $"{BarcodeFamily.Gs1CompositeComponent}:{componentExpected}" }.Order(StringComparer.Ordinal)];
+        Assert.Equal(expected, results);
+    }
+
+    /// <summary>
     /// A symbol reads upright, on either side and upside down.
     /// </summary>
     /// <param name="mode">The rotation of the image.</param>
@@ -397,6 +474,8 @@ public class BarcodeDecoderTests
         yield return (new Code16KSymbology(), "Code 16K rotated", BarcodeFamily.Code16K, "Code 16K rotated");
         yield return (new Code49Symbology(), "Code 49 rotated", BarcodeFamily.Code49, "Code 49 rotated");
         yield return (new CodablockFSymbology(), "Codablock F rotated", BarcodeFamily.CodablockF, "Codablock F rotated");
+        yield return (new Gs1CompositeComponentSymbology(), "(21)A12345678", BarcodeFamily.Gs1CompositeComponent, "21A12345678");
+        yield return (new Gs1CompositeComponentSymbology(Gs1CompositeComponent.CcB, 3), "(10)ABC123", BarcodeFamily.Gs1CompositeComponent, "10ABC123");
         yield return (new IntelligentMailSymbology(), "0123456709498765432101234567891", BarcodeFamily.IntelligentMail, "0123456709498765432101234567891");
     }
 

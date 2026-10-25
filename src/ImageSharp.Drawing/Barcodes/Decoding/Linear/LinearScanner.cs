@@ -63,6 +63,7 @@ internal static class LinearScanner
         Span<int> forward = forwardBuffer.Span;
         Span<int> backward = backwardBuffer.Span;
         Span<int> starts = startBuffer.Span;
+        List<LineRead> reads = [];
 
         for (int i = 0; ; i++)
         {
@@ -91,6 +92,7 @@ internal static class LinearScanner
             }
 
             ReadOnlySpan<int> reversed = backward[..count];
+            reads.Clear();
             foreach (LinearReader reader in readers)
             {
                 if (reader.Directional && turned)
@@ -98,13 +100,47 @@ internal static class LinearScanner
                     continue;
                 }
 
-                ReadLine(context, reader, runs, starts[..count], false, y, width, turned, candidates);
+                ReadLine(context, reader, runs, false, reads);
                 if (!reader.Directional)
                 {
-                    ReadLine(context, reader, reversed, starts[..count], true, y, width, turned, candidates);
+                    ReadLine(context, reader, reversed, true, reads);
+                }
+            }
+
+            // A read inside a longer read of another family on the same scan line is a part of that symbol, such as the start of a UPC-E that reads as an
+            // add-on.
+            foreach (LineRead read in reads)
+            {
+                if (!IsInside(read, reads))
+                {
+                    float left = starts[read.First];
+                    float right = read.Last < count ? starts[read.Last] : width;
+                    Record(context, candidates, read.Match, left, right, y, turned, width);
                 }
             }
         }
+    }
+
+    /// <summary>
+    /// Returns whether a read lies inside a longer read of another family.
+    /// </summary>
+    /// <param name="read">The read.</param>
+    /// <param name="reads">The reads of the scan line.</param>
+    /// <returns><see langword="true"/> when another read holds the read.</returns>
+    private static bool IsInside(in LineRead read, List<LineRead> reads)
+    {
+        foreach (LineRead other in reads)
+        {
+            if (other.Match.Family != read.Match.Family
+                && other.First <= read.First
+                && read.Last <= other.Last
+                && other.Last - other.First > read.Last - read.First)
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /// <summary>
@@ -113,22 +149,9 @@ internal static class LinearScanner
     /// <param name="context">The decode.</param>
     /// <param name="reader">The reader.</param>
     /// <param name="runs">The runs in the reading direction.</param>
-    /// <param name="starts">The start of each run in the forward direction, in pixels.</param>
     /// <param name="reversed">Whether the runs read from right to left.</param>
-    /// <param name="y">The row.</param>
-    /// <param name="width">The width of the row.</param>
-    /// <param name="turned">Whether the image is the quarter turn of the source.</param>
-    /// <param name="candidates">The symbols read so far.</param>
-    private static void ReadLine(
-        DecodeContext context,
-        LinearReader reader,
-        ReadOnlySpan<int> runs,
-        ReadOnlySpan<int> starts,
-        bool reversed,
-        int y,
-        int width,
-        bool turned,
-        List<Candidate> candidates)
+    /// <param name="reads">The reads of the scan line, the runs they span counted in the forward direction of the row.</param>
+    private static void ReadLine(DecodeContext context, LinearReader reader, ReadOnlySpan<int> runs, bool reversed, List<LineRead> reads)
     {
         int start = 1;
         while (start < runs.Length - 1 && reader.TryRead(runs, start, context, out LinearMatch match))
@@ -138,9 +161,7 @@ internal static class LinearScanner
                 // The ends of the symbol in the forward direction of the row.
                 int first = reversed ? runs.Length - match.EndRun : match.StartRun;
                 int last = reversed ? runs.Length - match.StartRun : match.EndRun;
-                float left = starts[first];
-                float right = last < starts.Length ? starts[last] : width;
-                Record(context, candidates, match, left, right, y, turned, width);
+                reads.Add(new LineRead(match, first, last));
             }
 
             start = Math.Max(match.EndRun, start + 2) | 1;
@@ -220,6 +241,40 @@ internal static class LinearScanner
         }
 
         return count;
+    }
+
+    /// <summary>
+    /// A symbol read on one scan line, with the runs it spans in the forward direction of the row.
+    /// </summary>
+    private readonly struct LineRead
+    {
+        /// <summary>
+        /// Initializes a new instance of the <see cref="LineRead"/> struct.
+        /// </summary>
+        /// <param name="match">The read.</param>
+        /// <param name="first">The index of the first run of the symbol.</param>
+        /// <param name="last">The index of the run after the symbol.</param>
+        public LineRead(in LinearMatch match, int first, int last)
+        {
+            this.Match = match;
+            this.First = first;
+            this.Last = last;
+        }
+
+        /// <summary>
+        /// Gets the read.
+        /// </summary>
+        public LinearMatch Match { get; }
+
+        /// <summary>
+        /// Gets the index of the first run of the symbol.
+        /// </summary>
+        public int First { get; }
+
+        /// <summary>
+        /// Gets the index of the run after the symbol.
+        /// </summary>
+        public int Last { get; }
     }
 
     /// <summary>

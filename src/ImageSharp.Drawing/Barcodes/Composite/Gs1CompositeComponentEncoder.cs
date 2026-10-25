@@ -66,17 +66,17 @@ internal static class Gs1CompositeComponentEncoder
     /// <summary>
     /// The number of bits section 8.5 converts into one group of base 928 codewords.
     /// </summary>
-    private const int Base928GroupBits = 69;
+    public const int Base928GroupBits = 69;
 
     /// <summary>
     /// The number of base 928 codewords of a full group of <see cref="Base928GroupBits"/> bits.
     /// </summary>
-    private const int Base928GroupCodewords = 7;
+    public const int Base928GroupCodewords = 7;
 
     /// <summary>
     /// The base of the CC-A codewords, section 8.5.
     /// </summary>
-    private const int Base928 = 928;
+    public const int Base928 = 928;
 
     /// <summary>
     /// The codeword that starts the data of CC-B, clause 9 a), and follows the Symbol Length Descriptor of CC-C, clause 10 a).
@@ -119,7 +119,7 @@ internal static class Gs1CompositeComponentEncoder
     /// address patterns of the first row from Table 10 and Table 11. The sizes of one column count stand in order of capacity. A 3-column CC-A has no left row
     /// address pattern, clause 8.2 d), and its left value gives the row of Table 11 that sets the cluster of its first row.
     /// </summary>
-    private static ReadOnlySpan<byte> CcASizes =>
+    public static ReadOnlySpan<byte> CcASizes =>
     [
         2, 5, 4, 39, 0, 19,
         2, 6, 4, 1, 0, 33,
@@ -141,6 +141,11 @@ internal static class Gs1CompositeComponentEncoder
     ];
 
     /// <summary>
+    /// Gets the letters of Table 3, whose four bit code is their index.
+    /// </summary>
+    public static ReadOnlySpan<char> Table3Letters => "BDHIJKLNPQRSTVWZ";
+
+    /// <summary>
     /// Gets the CC-B sizes of Table 5-41 of the GS1 General Specifications, which "lists all the possible column and row combinations for CC-B", two values
     /// each: the data columns and the rows. The sizes of one column count stand in order of capacity.
     /// </summary>
@@ -150,11 +155,6 @@ internal static class Gs1CompositeComponentEncoder
         3, 15, 3, 20, 3, 26, 3, 32, 3, 38, 3, 44,
         4, 10, 4, 12, 4, 15, 4, 20, 4, 26, 4, 32, 4, 38, 4, 44,
     ];
-
-    /// <summary>
-    /// Gets the letters of Table 3, whose four bit code is their index.
-    /// </summary>
-    private static ReadOnlySpan<char> Table3Letters => "BDHIJKLNPQRSTVWZ";
 
     /// <summary>
     /// Gets the punctuation characters ISO/IEC 646 mode encodes, in the order of their values from 232 in Table 7.

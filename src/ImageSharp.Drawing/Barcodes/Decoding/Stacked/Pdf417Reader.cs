@@ -41,6 +41,27 @@ internal sealed class Pdf417Reader : StackedReader
     /// <inheritdoc/>
     public override void Read(DecodeContext context, BitImage bits, bool turned)
     {
+        List<CorrectedSymbol> found = [];
+        Collect(context, bits, turned, found);
+        foreach (CorrectedSymbol symbol in found)
+        {
+            // A symbol whose data starts with the codeword 920 is the CC-C 2D component of a GS1 Composite symbol, which its own reader reads.
+            if (!symbol.IsComposite && Pdf417Text.TryDecode(symbol.Codewords, Pdf417Text.StartMode.Text, out string? text))
+            {
+                context.Add(BarcodeFamily.Pdf417, text, "]L2", symbol.Corners);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Scans one orientation of an image for PDF417 symbols and collects the ones whose symbol matrix the Reed-Solomon code corrects.
+    /// </summary>
+    /// <param name="context">The decode.</param>
+    /// <param name="bits">The image in this orientation.</param>
+    /// <param name="turned">Whether the image is the turned image.</param>
+    /// <param name="found">The symbols, with their data codewords after the Symbol Length Descriptor.</param>
+    public static void Collect(DecodeContext context, BitImage bits, bool turned, List<CorrectedSymbol> found)
+    {
         List<CodewordVotes>[] symbols = [[], []];
         int width = bits.Width;
         using PooledBuffer<int> runBuffer = new(width + 2);
@@ -99,7 +120,7 @@ internal sealed class Pdf417Reader : StackedReader
         {
             foreach (CodewordVotes symbol in symbols[direction])
             {
-                if (TryDecode(symbol, out string? text))
+                if (TryCorrect(symbol, out int[]? data))
                 {
                     // The corners as the symbol reads: a symbol read right to left is upside down.
                     PointF topLeft = Map(symbol.Left, symbol.Top, bits, turned);
@@ -107,7 +128,7 @@ internal sealed class Pdf417Reader : StackedReader
                     PointF bottomRight = Map(symbol.Right, symbol.Bottom + 1, bits, turned);
                     PointF bottomLeft = Map(symbol.Left, symbol.Bottom + 1, bits, turned);
                     PointF[] corners = direction == 0 ? [topLeft, topRight, bottomRight, bottomLeft] : [bottomRight, bottomLeft, topLeft, topRight];
-                    context.Add(BarcodeFamily.Pdf417, text, "]L2", corners);
+                    found.Add(new CorrectedSymbol(data, corners));
                 }
             }
         }
@@ -230,14 +251,14 @@ internal sealed class Pdf417Reader : StackedReader
     }
 
     /// <summary>
-    /// Builds the symbol matrix from the votes, corrects it and decodes it.
+    /// Builds the symbol matrix from the votes and corrects it.
     /// </summary>
     /// <param name="symbol">The votes of the symbol.</param>
-    /// <param name="text">The data.</param>
-    /// <returns><see langword="true"/> when the symbol decodes.</returns>
-    private static bool TryDecode(CodewordVotes symbol, out string text)
+    /// <param name="data">The data codewords after the Symbol Length Descriptor, the pad codewords included.</param>
+    /// <returns><see langword="true"/> when the matrix corrects.</returns>
+    private static bool TryCorrect(CodewordVotes symbol, out int[] data)
     {
-        text = string.Empty;
+        data = [];
         int rowsDiv3 = symbol.Value(RowsKey);
         int levelValue = symbol.Value(LevelKey);
         int columns = symbol.Value(ColumnsKey);
@@ -291,6 +312,7 @@ internal sealed class Pdf417Reader : StackedReader
             return false;
         }
 
-        return Pdf417Text.TryDecode(matrix[1..length], Pdf417Text.StartMode.Text, out text);
+        data = matrix[1..length].ToArray();
+        return true;
     }
 }

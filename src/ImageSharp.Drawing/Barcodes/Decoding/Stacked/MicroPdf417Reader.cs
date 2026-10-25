@@ -8,7 +8,8 @@ namespace SixLabors.ImageSharp.Drawing.Barcodes;
 /// <summary>
 /// Reads MicroPDF417, ISO/IEC 24728. <see cref="MicroPdf417Rows"/> collects the rows the scan lines read into the sizes of
 /// <see cref="MicroPdf417Encoder.Sizes"/> they fit, the size with the most reads builds its symbol matrix, the Reed-Solomon code over GF(929) corrects it, and
-/// <see cref="Pdf417Text"/> decodes its data codewords, which have no Symbol Length Descriptor.
+/// <see cref="Pdf417Text"/> decodes its data codewords, which have no Symbol Length Descriptor. The CC-A and CC-B 2D components of GS1 Composite symbols read
+/// through the same rows and correction.
 /// </summary>
 internal sealed class MicroPdf417Reader : StackedReader
 {
@@ -23,17 +24,41 @@ internal sealed class MicroPdf417Reader : StackedReader
     /// <inheritdoc/>
     public override void Read(DecodeContext context, BitImage bits, bool turned)
     {
+        List<CorrectedSymbol> found = [];
+        Collect(context, bits, turned, MicroPdf417Encoder.Sizes, true, found);
+        foreach (CorrectedSymbol symbol in found)
+        {
+            // A symbol whose data starts with the codeword 920 is the CC-B 2D component of a GS1 Composite symbol, which its own reader reads.
+            if (!symbol.IsComposite && Pdf417Text.TryDecode(symbol.Codewords, Pdf417Text.StartMode.Byte, out string? text))
+            {
+                context.Add(BarcodeFamily.MicroPdf417, text, "]L2", symbol.Corners);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Scans one orientation of an image in both directions for symbols of the sizes of a table and collects the ones the Reed-Solomon code corrects.
+    /// </summary>
+    /// <param name="context">The decode.</param>
+    /// <param name="bits">The image in this orientation.</param>
+    /// <param name="turned">Whether the image is the turned image.</param>
+    /// <param name="table">The sizes.</param>
+    /// <param name="hasLeft">Whether a three column size of the table has a left row address pattern.</param>
+    /// <param name="found">The symbols, with their data codewords.</param>
+    public static void Collect(DecodeContext context, BitImage bits, bool turned, ReadOnlySpan<byte> table, bool hasLeft, List<CorrectedSymbol> found)
+    {
         for (int direction = 0; direction < 2; direction++)
         {
-            MicroPdf417Rows rows = MicroPdf417Rows.Scan(context, bits, MicroPdf417Encoder.Sizes, true, direction == 1);
-            if (TryDecode(rows, MicroPdf417Encoder.Sizes, out string? text, out CodewordVotes? votes))
+            MicroPdf417Rows rows = MicroPdf417Rows.Scan(context, bits, table, hasLeft, direction == 1);
+            if (TryCorrect(rows, table, out int[] codewords, out CodewordVotes votes, out _))
             {
+                // The corners as the symbol reads: a symbol read right to left is upside down.
                 PointF topLeft = Map(votes.Left, votes.Top, bits, turned);
                 PointF topRight = Map(votes.Right, votes.Top, bits, turned);
                 PointF bottomRight = Map(votes.Right, votes.Bottom + 1, bits, turned);
                 PointF bottomLeft = Map(votes.Left, votes.Bottom + 1, bits, turned);
                 PointF[] corners = direction == 0 ? [topLeft, topRight, bottomRight, bottomLeft] : [bottomRight, bottomLeft, topLeft, topRight];
-                context.Add(BarcodeFamily.MicroPdf417, text, "]L2", corners);
+                found.Add(new CorrectedSymbol(codewords, corners));
             }
         }
     }
@@ -92,24 +117,5 @@ internal sealed class MicroPdf417Reader : StackedReader
         }
 
         return false;
-    }
-
-    /// <summary>
-    /// Corrects and decodes the symbol the rows make.
-    /// </summary>
-    /// <param name="rows">The rows.</param>
-    /// <param name="table">The sizes.</param>
-    /// <param name="text">The data.</param>
-    /// <param name="votes">The votes of the size that decoded.</param>
-    /// <returns><see langword="true"/> when a size decodes.</returns>
-    private static bool TryDecode(MicroPdf417Rows rows, ReadOnlySpan<byte> table, out string text, out CodewordVotes votes)
-    {
-        text = string.Empty;
-        if (!TryCorrect(rows, table, out int[] codewords, out votes, out _))
-        {
-            return false;
-        }
-
-        return Pdf417Text.TryDecode(codewords, Pdf417Text.StartMode.Byte, out text);
     }
 }

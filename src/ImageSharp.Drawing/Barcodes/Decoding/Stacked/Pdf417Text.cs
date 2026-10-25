@@ -14,8 +14,26 @@ namespace SixLabors.ImageSharp.Drawing.Barcodes;
 /// </summary>
 internal static class Pdf417Text
 {
-    private const int TextLatch = 900;
-    private const int ByteLatch = 901;
+    /// <summary>
+    /// The codeword that starts the data of the CC-B and CC-C 2D components of GS1 Composite symbols, clauses 9 a) and 10 a) of ISO/IEC 24723.
+    /// </summary>
+    public const int CompositeCodeword = 920;
+
+    /// <summary>
+    /// The latch to Text Compaction mode, which also pads a symbol.
+    /// </summary>
+    public const int TextLatch = 900;
+
+    /// <summary>
+    /// The latch to Byte Compaction mode for a byte count that is not a multiple of six.
+    /// </summary>
+    public const int ByteLatch = 901;
+
+    /// <summary>
+    /// The latch to Byte Compaction mode for a byte count that is a multiple of six.
+    /// </summary>
+    public const int ByteLatchSix = 924;
+
     private const int NumericLatch = 902;
     private const int ByteShift = 913;
     private const int Macro05 = 916;
@@ -23,7 +41,6 @@ internal static class Pdf417Text
     private const int ReaderInitialization = 921;
     private const int MacroTerminator = 922;
     private const int MacroOptionalField = 923;
-    private const int ByteLatchSix = 924;
     private const int EciUserDefined = 925;
     private const int EciGeneralPurpose = 926;
     private const int EciCharacterSet = 927;
@@ -188,7 +205,7 @@ internal static class Pdf417Text
 
                     break;
                 default:
-                    DecodeBytes(codewords, ref i, mode == ByteLatchSix, segments);
+                    DecodeBytes(codewords, ref i, mode == ByteLatchSix, segments.PendingBytes);
                     break;
             }
         }
@@ -200,6 +217,53 @@ internal static class Pdf417Text
 
         text = segments.ToString();
         return text.Length > 0;
+    }
+
+    /// <summary>
+    /// Decodes Byte Compaction codewords up to the next mode codeword. A group of five codewords is six bytes in base 900; after the latch 901 the codewords
+    /// after the last whole group, which nothing but a mode codeword or the end follows, are one byte each.
+    /// </summary>
+    /// <param name="codewords">The codewords.</param>
+    /// <param name="i">The index of the first codeword, moved past the run.</param>
+    /// <param name="six">Whether the run took the latch 924, so every group is six bytes.</param>
+    /// <param name="output">The bytes read.</param>
+    public static void DecodeBytes(ReadOnlySpan<int> codewords, ref int i, bool six, List<byte> output)
+    {
+        int end = i;
+        while (end < codewords.Length && codewords[end] < TextLatch)
+        {
+            end++;
+        }
+
+        // After the latch 901 the byte count is not a multiple of six, so the last one to five codewords are single bytes even when they are five.
+        int count = end - i;
+        int groups = six ? count / 5 : (count - 1) / 5;
+
+        Span<byte> bytes = stackalloc byte[6];
+        for (int g = 0; g < groups; g++)
+        {
+            long value = 0;
+            for (int k = 0; k < 5; k++)
+            {
+                value = (value * 900) + codewords[i++];
+            }
+
+            for (int k = 5; k >= 0; k--)
+            {
+                bytes[k] = (byte)(value & 0xFF);
+                value >>= 8;
+            }
+
+            foreach (byte b in bytes)
+            {
+                output.Add(b);
+            }
+        }
+
+        while (i < end)
+        {
+            output.Add((byte)codewords[i++]);
+        }
     }
 
     /// <summary>
@@ -270,53 +334,6 @@ internal static class Pdf417Text
     }
 
     /// <summary>
-    /// Decodes Byte Compaction codewords up to the next mode codeword. A group of five codewords is six bytes in base 900; after the latch 901 the codewords
-    /// after the last whole group, which nothing but a mode codeword or the end follows, are one byte each.
-    /// </summary>
-    /// <param name="codewords">The codewords.</param>
-    /// <param name="i">The index of the first codeword, moved past the run.</param>
-    /// <param name="six">Whether the run took the latch 924, so every group is six bytes.</param>
-    /// <param name="segments">The text.</param>
-    private static void DecodeBytes(ReadOnlySpan<int> codewords, ref int i, bool six, Segments segments)
-    {
-        int end = i;
-        while (end < codewords.Length && codewords[end] < TextLatch)
-        {
-            end++;
-        }
-
-        // After the latch 901 the byte count is not a multiple of six, so the last one to five codewords are single bytes even when they are five.
-        int count = end - i;
-        int groups = six ? count / 5 : (count - 1) / 5;
-
-        Span<byte> bytes = stackalloc byte[6];
-        for (int g = 0; g < groups; g++)
-        {
-            long value = 0;
-            for (int k = 0; k < 5; k++)
-            {
-                value = (value * 900) + codewords[i++];
-            }
-
-            for (int k = 5; k >= 0; k--)
-            {
-                bytes[k] = (byte)(value & 0xFF);
-                value >>= 8;
-            }
-
-            foreach (byte b in bytes)
-            {
-                segments.AppendByte(b);
-            }
-        }
-
-        while (i < end)
-        {
-            segments.AppendByte((byte)codewords[i++]);
-        }
-    }
-
-    /// <summary>
     /// Decodes Numeric Compaction codewords up to the next mode codeword: each group of up to 15 codewords is a number in base 900 whose decimal digits after
     /// the leading 1 are the data.
     /// </summary>
@@ -356,6 +373,11 @@ internal static class Pdf417Text
         private readonly StringBuilder text = new();
         private readonly List<byte> bytes = [];
         private int eci = -1;
+
+        /// <summary>
+        /// Gets the bytes that read in the character set of the current ECI when the text ends or the ECI changes.
+        /// </summary>
+        public List<byte> PendingBytes => this.bytes;
 
         /// <summary>
         /// Appends text.
