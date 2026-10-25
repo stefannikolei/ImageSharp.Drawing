@@ -14,7 +14,7 @@ internal static class HexagonalEmitter
     /// <summary>
     /// The nominal X dimension in millimetres that the finder radii of Table 8 are given at: W = L/29 with L = 25.50 mm, Table 7.
     /// </summary>
-    private const double TableXDimension = 0.88;
+    public const double TableXDimension = 0.88;
 
     /// <summary>
     /// The amount in millimetres by which a dark hexagon is narrower and shorter than its module, Table 6: a width of (X - 0.12 mm) and a height of (V - 0.12
@@ -26,18 +26,18 @@ internal static class HexagonalEmitter
     /// The row of the module the finder is centred on, section 4.11.4: "16Y above the center of modules in the bottom-most row of the symbol, and 14W to the
     /// right from the center of the left-most module of the row".
     /// </summary>
-    private const int FinderRow = 16;
+    public const int FinderRow = 16;
 
     /// <summary>
     /// The column of the module the finder is centred on, section 4.11.4. See <see cref="FinderRow"/>.
     /// </summary>
-    private const int FinderColumn = 14;
+    public const int FinderColumn = 14;
 
     /// <summary>
     /// Gets the radii of the finder transitions in millimetres at the nominal size, Table 8: the light centre out to R1, then dark to R2, light to R3, dark to
     /// R4, light to R5 and dark to R6.
     /// </summary>
-    private static ReadOnlySpan<double> FinderRadii => [0.51, 1.18, 1.86, 2.53, 3.20, 3.87];
+    public static ReadOnlySpan<double> FinderRadii => [0.51, 1.18, 1.86, 2.53, 3.20, 3.87];
 
     /// <summary>
     /// Measures the symbol without drawing anything.

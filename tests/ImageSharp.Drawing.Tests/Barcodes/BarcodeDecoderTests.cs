@@ -593,6 +593,40 @@ public class BarcodeDecoderTests
     }
 
     /// <summary>
+    /// A MaxiCode symbol decodes in modes 4, 5 and 6 through every code set of Table 3, its numeric shift and its locks.
+    /// </summary>
+    /// <param name="mode">The mode.</param>
+    /// <param name="text">The data.</param>
+    [Theory]
+    [InlineData(MaxiCodeMode.Standard, "MAXICODE 4")]
+    [InlineData(MaxiCodeMode.FullErrorCorrection, "MaxiCode 5 with lower case")]
+    [InlineData(MaxiCodeMode.ReaderProgramming, "READER")]
+    [InlineData(MaxiCodeMode.Standard, "Digits 123456789012345678 and more")]
+    [InlineData(MaxiCodeMode.Standard, "Latin-1 \u00C0\u00C1\u00C2\u00E0\u00E1\u00E2 \u00AA\u00BF and control \u0001\u0002")]
+    [InlineData(MaxiCodeMode.Standard, "Punctuation {}~;<=>?[\\]^_,./:@!| \u007F")]
+    public void MaxiCode_RoundTripsEveryModeAndCodeSet(MaxiCodeMode mode, string text)
+    {
+        text = System.Text.RegularExpressions.Regex.Unescape(text);
+        AssertReads(new MaxiCodeSymbology(mode), text, BarcodeFamily.MaxiCode, "]U0", text);
+    }
+
+    /// <summary>
+    /// A MaxiCode structured carrier message decodes to the postal code, the country code and the class of service, then the secondary data, in modes 2 and 3,
+    /// and after the header of a message in format 01.
+    /// </summary>
+    /// <param name="mode">The mode.</param>
+    /// <param name="text">The data.</param>
+    [Theory]
+    [InlineData(MaxiCodeMode.StructuredCarrierNumeric, "152382802\u001D840\u001D001\u001DMESSAGE 1")]
+    [InlineData(MaxiCodeMode.StructuredCarrierAlphanumeric, "B1050\u001D056\u001D999\u001DMessage 2")]
+    [InlineData(MaxiCodeMode.StructuredCarrierNumeric, "[)>\u001E01\u001D96123456789\u001D840\u001D002\u001D1Z12345\u001DUPSN\u001E\u0004")]
+    public void MaxiCode_ReadsStructuredCarrierMessages(MaxiCodeMode mode, string text)
+    {
+        text = System.Text.RegularExpressions.Regex.Unescape(text);
+        AssertReads(new MaxiCodeSymbology(mode), text, BarcodeFamily.MaxiCode, "]U1", text);
+    }
+
+    /// <summary>
     /// A symbol reads upright, on either side and upside down.
     /// </summary>
     /// <param name="mode">The rotation of the image.</param>
@@ -654,6 +688,7 @@ public class BarcodeDecoderTests
         yield return (new AztecCodeSymbology(), "Aztec rotated", BarcodeFamily.Aztec, "Aztec rotated");
         yield return (new AztecCodeSymbology(23, 6), "Aztec full range", BarcodeFamily.Aztec, "Aztec full range");
         yield return (new AztecRuneSymbology(), "42", BarcodeFamily.AztecRune, "042");
+        yield return (new MaxiCodeSymbology(), "MaxiCode rotated", BarcodeFamily.MaxiCode, "MaxiCode rotated");
         yield return (new IntelligentMailSymbology(), "0123456709498765432101234567891", BarcodeFamily.IntelligentMail, "0123456709498765432101234567891");
     }
 

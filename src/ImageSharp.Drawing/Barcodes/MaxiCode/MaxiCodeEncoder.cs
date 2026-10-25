@@ -20,47 +20,47 @@ internal static class MaxiCodeEncoder
     /// <summary>
     /// The number of module positions in a row.
     /// </summary>
-    private const int Columns = 30;
+    public const int Columns = 30;
 
     /// <summary>
     /// The number of rows.
     /// </summary>
-    private const int Rows = 33;
+    public const int Rows = 33;
 
     /// <summary>
     /// The number of codewords in a symbol, the primary and secondary messages with their check codewords.
     /// </summary>
-    private const int CodewordCount = 144;
+    public const int CodewordCount = 144;
 
     /// <summary>
     /// The number of data codewords of the primary message. The first is the mode.
     /// </summary>
-    private const int PrimaryDataCodewords = 10;
+    public const int PrimaryDataCodewords = 10;
 
     /// <summary>
     /// The number of check codewords of the primary message.
     /// </summary>
-    private const int PrimaryCheckCodewords = 10;
+    public const int PrimaryCheckCodewords = 10;
 
     /// <summary>
     /// The index of the first secondary data codeword, after the primary data and check codewords.
     /// </summary>
-    private const int SecondaryStart = PrimaryDataCodewords + PrimaryCheckCodewords;
+    public const int SecondaryStart = PrimaryDataCodewords + PrimaryCheckCodewords;
 
     /// <summary>
     /// The number of secondary data codewords with standard error correction, modes 2, 3, 4 and 6.
     /// </summary>
-    private const int StandardSecondaryLength = 84;
+    public const int StandardSecondaryLength = 84;
 
     /// <summary>
     /// The number of check codewords of one secondary block with standard error correction.
     /// </summary>
-    private const int StandardSecondaryCheckCodewords = 20;
+    public const int StandardSecondaryCheckCodewords = 20;
 
     /// <summary>
     /// The number of check codewords of one secondary block with enhanced error correction, mode 5.
     /// </summary>
-    private const int EnhancedSecondaryCheckCodewords = 28;
+    public const int EnhancedSecondaryCheckCodewords = 28;
 
     /// <summary>
     /// The length of a code set the search has not reached at a character. A message is at most <see cref="CodewordCount"/> codewords, so this value is larger
@@ -81,67 +81,67 @@ internal static class MaxiCodeEncoder
     /// <summary>
     /// The codeword that latches from code set C, D or E to code set A.
     /// </summary>
-    private const int LatchA = 58;
+    public const int LatchA = 58;
 
     /// <summary>
     /// The codeword that latches to code set B from A, C, D or E, and to code set A from B.
     /// </summary>
-    private const int LatchBCodeword = 63;
+    public const int LatchBCodeword = 63;
 
     /// <summary>
     /// The codeword of the numeric shift, NS, which carries nine digits in the five codewords after it.
     /// </summary>
-    private const int NumericShiftCodeword = 31;
+    public const int NumericShiftCodeword = 31;
 
     /// <summary>
     /// The codeword that shifts two characters into code set A from B, 2 SHIFT A.
     /// </summary>
-    private const int TwoShiftACodeword = 56;
+    public const int TwoShiftACodeword = 56;
 
     /// <summary>
     /// The codeword that shifts three characters into code set A from B, 3 SHIFT A.
     /// </summary>
-    private const int ThreeShiftACodeword = 57;
+    public const int ThreeShiftACodeword = 57;
 
     /// <summary>
     /// The codeword that shifts one character into code set B from A, SHIFT B, or into code set A from B, SHIFT A.
     /// </summary>
-    private const int ShiftCodeword = 59;
+    public const int ShiftCodeword = 59;
 
     /// <summary>
     /// The codeword that shifts one character into code set C.
     /// </summary>
-    private const int ShiftCCodeword = 60;
+    public const int ShiftCCodeword = 60;
 
     /// <summary>
     /// The codeword that shifts one character into code set D.
     /// </summary>
-    private const int ShiftDCodeword = 61;
+    public const int ShiftDCodeword = 61;
 
     /// <summary>
     /// The codeword that shifts one character into code set E.
     /// </summary>
-    private const int ShiftECodeword = 62;
+    public const int ShiftECodeword = 62;
 
     /// <summary>
     /// The data codewords of the secondary message of modes 2 and 3.
     /// </summary>
-    private const int CarrierCapacity = 84;
+    public const int CarrierCapacity = 84;
 
     /// <summary>
     /// The data codewords of mode 5 after the mode codeword.
     /// </summary>
-    private const int EnhancedCapacity = 77;
+    public const int EnhancedCapacity = 77;
 
     /// <summary>
     /// The data codewords of modes 4 and 6 after the mode codeword.
     /// </summary>
-    private const int StandardCapacity = 93;
+    public const int StandardCapacity = 93;
 
     /// <summary>
     /// The field of the Reed-Solomon codes: GF(64) with the polynomial x^6 + x + 1, 67 decimal.
     /// </summary>
-    private static readonly GaloisField Field = new(64, 67);
+    public static readonly GaloisField Field = new(64, 67);
 
     /// <summary>
     /// The code sets of Table 3, in the row and column order of the latch, pad and value tables.
@@ -286,17 +286,17 @@ internal static class MaxiCodeEncoder
     /// <summary>
     /// Gets the pad codeword of each code set, 0 where the code set has none.
     /// </summary>
-    private static ReadOnlySpan<byte> PadCodes => [33, 33, 0, 0, 28];
+    public static ReadOnlySpan<byte> PadCodes => [33, 33, 0, 0, 28];
 
     /// <summary>
     /// Gets the dark modules of the orientation patterns around the finder, as row x 30 + column.
     /// </summary>
-    private static ReadOnlySpan<short> OrientationModules => [28, 29, 280, 281, 311, 457, 488, 500, 530, 670, 700, 677, 707];
+    public static ReadOnlySpan<short> OrientationModules => [28, 29, 280, 281, 311, 457, 488, 500, 530, 670, 700, 677, 707];
 
     /// <summary>
     /// Gets the module of each codeword bit, as row x 30 + column: bit b of codeword c, the most significant bit first, is entry 6c + b.
     /// </summary>
-    private static ReadOnlySpan<short> ModuleMap =>
+    public static ReadOnlySpan<short> ModuleMap =>
     [
         469, 529, 286, 316, 347, 346, 673, 672, 703, 702, 647, 676, 283, 282, 313, 312, 370, 610, 618, 379,
         378, 409, 408, 439, 705, 704, 559, 589, 588, 619, 458, 518, 640, 701, 675, 674, 285, 284, 315, 314,
@@ -348,7 +348,7 @@ internal static class MaxiCodeEncoder
     /// Gets the value of each byte in each code set of Table 3, at index code set x 256 + byte, or 0xFF where the code set has no such byte. Code sets A to E
     /// follow in turn, 256 bytes each. A byte that two values of one code set stand for takes the later value.
     /// </summary>
-    private static ReadOnlySpan<byte> SetValues =>
+    public static ReadOnlySpan<byte> SetValues =>
     [
         255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 0, 255, 255,
         255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 28, 29, 30, 255,

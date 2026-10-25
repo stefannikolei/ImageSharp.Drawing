@@ -79,6 +79,7 @@ public static class BarcodeDecoder
         new MicroQrReader(),
         new DataMatrixReader(),
         new AztecReader(),
+        new MaxiCodeReader(),
     ];
 
     /// <summary>
