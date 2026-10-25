@@ -22,37 +22,37 @@ internal static class CodeOneEncoder
     /// <summary>
     /// The ASCII codeword that pads the data codewords to the capacity of the version.
     /// </summary>
-    private const int Pad = 129;
+    public const int Pad = 129;
 
     /// <summary>
     /// The ASCII codeword of the first digit pair, 00. A pair of digits is this codeword plus its value.
     /// </summary>
-    private const int DigitPairBase = 130;
+    public const int DigitPairBase = 130;
 
     /// <summary>
     /// The ASCII codeword that latches to C40 mode.
     /// </summary>
-    private const int LatchC40 = 230;
+    public const int LatchC40 = 230;
 
     /// <summary>
     /// The ASCII codeword that latches to Byte mode.
     /// </summary>
-    private const int LatchByte = 231;
+    public const int LatchByte = 231;
 
     /// <summary>
     /// The ASCII codeword of the Upper Shift, which adds 128 to the next character.
     /// </summary>
-    private const int UpperShift = 235;
+    public const int UpperShift = 235;
 
     /// <summary>
     /// The ASCII codeword that latches to X12 mode.
     /// </summary>
-    private const int LatchX12 = 238;
+    public const int LatchX12 = 238;
 
     /// <summary>
     /// The ASCII codeword that latches to Text mode.
     /// </summary>
-    private const int LatchText = 239;
+    public const int LatchText = 239;
 
     /// <summary>
     /// The C40 and Text value of Shift 1, the set of the control characters.
@@ -105,17 +105,17 @@ internal static class CodeOneEncoder
     /// <summary>
     /// The codeword that unlatches C40, Text and X12 mode back to ASCII mode.
     /// </summary>
-    private const int Unlatch = 255;
+    public const int Unlatch = 255;
 
     /// <summary>
     /// The four bits that latch from ASCII mode into Decimal mode, the high bits of the first Decimal codeword.
     /// </summary>
-    private const int DecimalLatch = 0b1111;
+    public const int DecimalLatch = 0b1111;
 
     /// <summary>
     /// The six bits that unlatch Decimal mode back to ASCII mode.
     /// </summary>
-    private const int DecimalUnlatch = 0b111111;
+    public const int DecimalUnlatch = 0b111111;
 
     /// <summary>
     /// The number of characters the look-ahead reads before a mode can win early.
@@ -130,12 +130,12 @@ internal static class CodeOneEncoder
     /// <summary>
     /// The field of the 8-bit codewords of versions A to H and T: GF(256) with the polynomial x^8 + x^5 + x^3 + x^2 + 1, 301 decimal.
     /// </summary>
-    private static readonly GaloisField Field8 = new(256, 301);
+    public static readonly GaloisField Field8 = new(256, 301);
 
     /// <summary>
     /// The field of the 5-bit codewords of the S versions: GF(32) with the polynomial x^5 + x^2 + 1, 37 decimal.
     /// </summary>
-    private static readonly GaloisField Field5 = new(32, 37);
+    public static readonly GaloisField Field5 = new(32, 37);
 
     /// <summary>
     /// The modes of versions A to H and T.
@@ -342,6 +342,39 @@ internal static class CodeOneEncoder
 
         Layout(info, all, cells[..(info.Rows * info.Columns)], modules);
     }
+
+    /// <summary>
+    /// Returns the dimensions and codeword counts of a version.
+    /// </summary>
+    /// <param name="version">The version.</param>
+    /// <param name="rows">The rows.</param>
+    /// <param name="columns">The columns.</param>
+    /// <param name="dataCodewords">The data codewords.</param>
+    /// <param name="checkCodewords">The check codewords.</param>
+    /// <param name="blocks">The Reed-Solomon blocks.</param>
+    public static void Dimensions(CodeOneVersion version, out int rows, out int columns, out int dataCodewords, out int checkCodewords, out int blocks)
+    {
+        VersionInfo info = new(version);
+        rows = info.Rows;
+        columns = info.Columns;
+        dataCodewords = info.DataCodewords;
+        checkCodewords = info.CheckCodewords;
+        blocks = info.CheckBlocks;
+    }
+
+    /// <summary>
+    /// Writes the cells of the fixed patterns of a version: the centre pattern rows, the risers and the black dots as 0 or 1, and every other cell as -1.
+    /// </summary>
+    /// <param name="version">The version.</param>
+    /// <param name="cells">The cells to write, rows x columns.</param>
+    public static void FixedCells(CodeOneVersion version, Span<sbyte> cells) => PlaceFixed(new VersionInfo(version), cells);
+
+    /// <summary>
+    /// Writes the module of each bit of each codeword of a version, the most significant bit first: 8 bits a codeword, or 5 in an S version.
+    /// </summary>
+    /// <param name="version">The version.</param>
+    /// <param name="positions">The row-major module index of each codeword bit.</param>
+    public static void CodewordPositions(CodeOneVersion version, Span<int> positions) => CodewordPositions(new VersionInfo(version), positions);
 
     /// <summary>
     /// Returns the length in ints of the scratch <see cref="EncodeData"/> takes: one <see cref="LookAheadEntry"/> for each position of the text and one past
@@ -651,6 +684,33 @@ internal static class CodeOneEncoder
     /// <param name="modules">The modules to write.</param>
     private static void Layout(VersionInfo info, ReadOnlySpan<int> codewords, Span<sbyte> cells, Span<bool> modules)
     {
+        PlaceFixed(info, cells);
+        for (int i = 0; i < cells.Length; i++)
+        {
+            modules[i] = cells[i] == 1;
+        }
+
+        int bits = info.IsNumeric ? 5 : 8;
+        int count = info.DataCodewords + info.CheckCodewords;
+        using PooledBuffer<int> positionBuffer = new(count * bits);
+        Span<int> positions = positionBuffer.Span[..(count * bits)];
+        CodewordPositions(info, positions);
+        for (int k = 0; k < count; k++)
+        {
+            for (int b = 0; b < bits; b++)
+            {
+                modules[positions[(k * bits) + b]] = ((codewords[k] >> (bits - 1 - b)) & 1) == 1;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Writes the cells of the fixed patterns of a version: the centre pattern rows, the risers and the black dots as 0 or 1, and every other cell as -1.
+    /// </summary>
+    /// <param name="info">The version.</param>
+    /// <param name="cells">The cells to write, one a module.</param>
+    private static void PlaceFixed(VersionInfo info, Span<sbyte> cells)
+    {
         int rows = info.Rows;
         int columns = info.Columns;
 
@@ -686,10 +746,20 @@ internal static class CodeOneEncoder
         {
             cells[(dots[d + 1] * columns) + dots[d]] = 1;
         }
+    }
 
-        // The data cells, in reading order, are the data grid of the version row by row. A brick is two rows high. An 8-bit codeword is 4 modules wide, with
-        // its first four bits on top. Two 5-bit codewords make a brick 5 modules wide: the top row holds the first three bits of the first codeword and then
-        // the first two bits of the second.
+    /// <summary>
+    /// Writes the module of each bit of each codeword of a version, the most significant bit first. The data cells, in reading order, are the data grid of the
+    /// version row by row. A brick is two rows high. An 8-bit codeword is 4 modules wide, with its first four bits on top. Two 5-bit codewords make a brick 5
+    /// modules wide: the top row holds the first three bits of the first codeword and then the first two bits of the second, and the bottom row the last two
+    /// bits of the first and the last three of the second.
+    /// </summary>
+    /// <param name="info">The version.</param>
+    /// <param name="positions">The row-major module index of each codeword bit, 8 or 5 for each codeword.</param>
+    private static void CodewordPositions(VersionInfo info, Span<int> positions)
+    {
+        sbyte[] cells = new sbyte[info.Rows * info.Columns];
+        PlaceFixed(info, cells);
         int dataColumns = info.DataColumns;
         bool numeric = info.IsNumeric;
         int brickWidth = numeric ? 5 : 4;
@@ -699,7 +769,6 @@ internal static class CodeOneEncoder
         {
             if (cells[i] >= 0)
             {
-                modules[i] = cells[i] == 1;
                 continue;
             }
 
@@ -712,18 +781,19 @@ internal static class CodeOneEncoder
             int bit;
             if (numeric)
             {
-                int first = codewords[2 * brick];
-                int second = codewords[(2 * brick) + 1];
-                bit = top
-                    ? b < 3 ? first >> (4 - b) : second >> (7 - b)
-                    : b < 2 ? first >> (1 - b) : second >> (4 - b);
+                // The bit of the first codeword or the second, from the most significant.
+                (int codeword, int index) = top ? (b < 3 ? (0, b) : (1, b - 3)) : (b < 2 ? (0, 3 + b) : (1, b));
+                bit = (((2 * brick) + codeword) * 5) + index;
             }
             else
             {
-                bit = codewords[brick] >> (top ? 7 - b : 3 - b);
+                bit = (brick * 8) + (top ? b : 4 + b);
             }
 
-            modules[i] = (bit & 1) == 1;
+            if (bit < positions.Length)
+            {
+                positions[bit] = i;
+            }
         }
     }
 

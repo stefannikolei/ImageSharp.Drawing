@@ -646,6 +646,49 @@ public class BarcodeDecoderTests
     }
 
     /// <summary>
+    /// A Code One symbol decodes through the ASCII, C40, Text, X12, Decimal and Byte modes, in the versions A to H and T.
+    /// </summary>
+    /// <param name="version">The version, or <see langword="null"/> for the smallest of A to H.</param>
+    /// <param name="text">The data.</param>
+    [Theory]
+    [InlineData(null, "Code One")]
+    [InlineData(null, "CODE ONE IN C40 MODE")]
+    [InlineData(null, "code one in text mode")]
+    [InlineData(null, "X12>X12*ABC\r123456")]
+    [InlineData(null, "123456789012345678901234567890123")]
+    [InlineData(null, "AB12345678901234567890123456789012345")]
+    [InlineData(null, "1234567890123456789012345678901234X")]
+    [InlineData(null, "Bytes \u00E9\u00FC\u00E9\u00FC\u00E9\u00FC\u00E9\u00FC\u00E9\u00FC")]
+    [InlineData(null, "Mixed abc ABC DEF GHI 1234 \u0001\u0002 xyz 99")]
+    [InlineData(CodeOneVersion.B, "B")]
+    [InlineData(CodeOneVersion.D, "Version D with more room")]
+    [InlineData(CodeOneVersion.F, "F")]
+    [InlineData(CodeOneVersion.H, "H")]
+    [InlineData(CodeOneVersion.T16, "T16")]
+    [InlineData(CodeOneVersion.T32, "Version T32")]
+    [InlineData(CodeOneVersion.T48, "Version T48 holds more")]
+    public void CodeOne_RoundTrips(CodeOneVersion? version, string text)
+    {
+        text = System.Text.RegularExpressions.Regex.Unescape(text);
+        CodeOneSymbology symbology = version is null ? new CodeOneSymbology() : new CodeOneSymbology(version.Value);
+        AssertReads(symbology, text, BarcodeFamily.CodeOne, "]o0", text);
+    }
+
+    /// <summary>
+    /// A Code One S version decodes to its number, which carries no leading zeros.
+    /// </summary>
+    /// <param name="version">The version.</param>
+    /// <param name="text">The digits.</param>
+    /// <param name="expected">The number.</param>
+    [Theory]
+    [InlineData(CodeOneVersion.S10, "123456", "123456")]
+    [InlineData(CodeOneVersion.S10, "0042", "42")]
+    [InlineData(CodeOneVersion.S20, "123456789012", "123456789012")]
+    [InlineData(CodeOneVersion.S30, "999999999999999999", "999999999999999999")]
+    public void CodeOne_ReadsNumericVersions(CodeOneVersion version, string text, string expected)
+        => AssertReads(new CodeOneSymbology(version), text, BarcodeFamily.CodeOne, "]o0", expected);
+
+    /// <summary>
     /// A symbol reads upright, on either side and upside down.
     /// </summary>
     /// <param name="mode">The rotation of the image.</param>
@@ -709,6 +752,9 @@ public class BarcodeDecoderTests
         yield return (new AztecRuneSymbology(), "42", BarcodeFamily.AztecRune, "042");
         yield return (new MaxiCodeSymbology(), "MaxiCode rotated", BarcodeFamily.MaxiCode, "MaxiCode rotated");
         yield return (new HanXinSymbology(), "Han Xin rotated", BarcodeFamily.HanXin, "Han Xin rotated");
+        yield return (new CodeOneSymbology(), "Code One rotated", BarcodeFamily.CodeOne, "Code One rotated");
+        yield return (new CodeOneSymbology(CodeOneVersion.T16), "T16", BarcodeFamily.CodeOne, "T16");
+        yield return (new CodeOneSymbology(CodeOneVersion.S10), "123456", BarcodeFamily.CodeOne, "123456");
         yield return (new IntelligentMailSymbology(), "0123456709498765432101234567891", BarcodeFamily.IntelligentMail, "0123456709498765432101234567891");
     }
 

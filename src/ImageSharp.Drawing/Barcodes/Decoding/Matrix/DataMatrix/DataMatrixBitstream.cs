@@ -26,6 +26,27 @@ internal static class DataMatrixBitstream
     private const int Unlatch = 254;
 
     /// <summary>
+    /// The encodations of three values in two codewords, which Code One takes from Data Matrix.
+    /// </summary>
+    public enum Triplets
+    {
+        /// <summary>
+        /// C40: the capital letters in the basic set.
+        /// </summary>
+        C40,
+
+        /// <summary>
+        /// Text: the small letters in the basic set.
+        /// </summary>
+        Text,
+
+        /// <summary>
+        /// X12: one set of 40 values and no shifts.
+        /// </summary>
+        X12,
+    }
+
+    /// <summary>
     /// The encodations of Table 2.
     /// </summary>
     private enum Mode
@@ -182,7 +203,14 @@ internal static class DataMatrixBitstream
                     mode = Mode.Ascii;
                     break;
                 default:
-                    if (!TryDecodeTriplets(codewords, ref i, mode, decoded, ref gs1))
+                    Triplets triplets = mode switch
+                    {
+                        Mode.C40 => Triplets.C40,
+                        Mode.Text => Triplets.Text,
+                        _ => Triplets.X12,
+                    };
+
+                    if (!TryDecodeTriplets(codewords, ref i, triplets, Unlatch, decoded, ref gs1))
                     {
                         return false;
                     }
@@ -250,15 +278,16 @@ internal static class DataMatrixBitstream
     /// <param name="codewords">The codewords.</param>
     /// <param name="i">The index of the first codeword, moved past the encodation.</param>
     /// <param name="mode">C40, Text or X12.</param>
+    /// <param name="unlatch">The codeword that unlatches: 254 in Data Matrix and 255 in Code One.</param>
     /// <param name="decoded">The data.</param>
     /// <param name="gs1">Whether the data is GS1 data, set by a Function 1 Symbol Character in the first position.</param>
     /// <returns><see langword="true"/> when the values are valid.</returns>
-    private static bool TryDecodeTriplets(ReadOnlySpan<int> codewords, ref int i, Mode mode, DecodedText decoded, ref bool gs1)
+    public static bool TryDecodeTriplets(ReadOnlySpan<int> codewords, ref int i, Triplets mode, int unlatch, DecodedText decoded, ref bool gs1)
     {
         Span<int> values = stackalloc int[3];
         int shift = 0;
         bool upperShift = false;
-        while (i + 1 < codewords.Length && codewords[i] != Unlatch)
+        while (i + 1 < codewords.Length && codewords[i] != unlatch)
         {
             int value = (codewords[i] * 256) + codewords[i + 1] - 1;
             i += 2;
@@ -267,7 +296,7 @@ internal static class DataMatrixBitstream
             values[2] = value % 40;
             foreach (int v in values)
             {
-                if (mode == Mode.X12)
+                if (mode == Triplets.X12)
                 {
                     // X12: carriage return 0, asterisk 1, greater than 2, space 3, the digits 4 to 13 and the capital letters 14 to 39.
                     decoded.AppendByte(v switch
@@ -298,7 +327,7 @@ internal static class DataMatrixBitstream
                         {
                             3 => ' ',
                             < 14 => v + 44,
-                            _ => v + (mode == Mode.C40 ? 51 : 83),
+                            _ => v + (mode == Triplets.C40 ? 51 : 83),
                         };
 
                         break;
@@ -335,7 +364,7 @@ internal static class DataMatrixBitstream
                         break;
                     default:
                         // Shift 3: the characters 96 to 127, the small letters in C40 and the capital letters in Text.
-                        character = mode == Mode.C40 || v == 0 || v > 26 ? v + 96 : v + 64;
+                        character = mode == Triplets.C40 || v == 0 || v > 26 ? v + 96 : v + 64;
                         break;
                 }
 
@@ -349,7 +378,7 @@ internal static class DataMatrixBitstream
         }
 
         // The unlatch returns to ASCII encodation, and so does the end of the codewords.
-        if (i < codewords.Length && codewords[i] == Unlatch)
+        if (i < codewords.Length && codewords[i] == unlatch)
         {
             i++;
         }
