@@ -66,6 +66,7 @@ public static class BarcodeDecoder
         new MicroPdf417Reader(),
         new Code16KReader(),
         new Code49Reader(),
+        new CodablockFReader(),
     ];
 
     /// <summary>

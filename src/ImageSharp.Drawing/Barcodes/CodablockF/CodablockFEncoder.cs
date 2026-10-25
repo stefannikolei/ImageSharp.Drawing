@@ -36,14 +36,50 @@ internal static class CodablockFEncoder
     public const int MaximumText = MaximumRows * MaximumColumns * 2;
 
     /// <summary>
+    /// The largest number of rows.
+    /// </summary>
+    public const int MaximumRows = 44;
+
+    /// <summary>
+    /// The modulus of the check characters K1 and K2.
+    /// </summary>
+    public const int CheckModulus = 86;
+
+    /// <summary>
+    /// The symbol character value of Shift, which changes code set A to B, or B to A, for one character. After the start character of a row, the same value
+    /// selects code set A for the row.
+    /// </summary>
+    public const int Shift = 98;
+
+    /// <summary>
+    /// The symbol character value of Code C, which changes code set A or B to code set C.
+    /// </summary>
+    public const int LatchC = 99;
+
+    /// <summary>
+    /// The symbol character value of Code B, which changes code set A or C to code set B.
+    /// </summary>
+    public const int LatchB = 100;
+
+    /// <summary>
+    /// The symbol character value of Code A, which changes code set B or C to code set A.
+    /// </summary>
+    public const int LatchA = 101;
+
+    /// <summary>
+    /// The symbol character value of Start A, which starts every row.
+    /// </summary>
+    public const int StartA = 103;
+
+    /// <summary>
+    /// The row indicator of the second row; each row that follows adds one.
+    /// </summary>
+    public const int SecondRowIndicator = 43;
+
+    /// <summary>
     /// The quiet zone in modules on each side.
     /// </summary>
     private const int QuietZone = 10;
-
-    /// <summary>
-    /// The largest number of rows.
-    /// </summary>
-    private const int MaximumRows = 44;
 
     /// <summary>
     /// The characters a row carries beyond its data columns: the start character, the code set selector, the row indicator, the row check character and the
@@ -57,32 +93,6 @@ internal static class CodablockFEncoder
     private const float SeparatorHeight = 1F;
 
     /// <summary>
-    /// The modulus of the check characters K1 and K2.
-    /// </summary>
-    private const int CheckModulus = 86;
-
-    /// <summary>
-    /// The symbol character value of Shift, which changes code set A to B, or B to A, for one character. After the start character of a row, the same value
-    /// selects code set A for the row.
-    /// </summary>
-    private const int Shift = 98;
-
-    /// <summary>
-    /// The symbol character value of Code C, which changes code set A or B to code set C.
-    /// </summary>
-    private const int LatchC = 99;
-
-    /// <summary>
-    /// The symbol character value of Code B, which changes code set A or C to code set B.
-    /// </summary>
-    private const int LatchB = 100;
-
-    /// <summary>
-    /// The symbol character value of Code A, which changes code set B or C to code set A.
-    /// </summary>
-    private const int LatchA = 101;
-
-    /// <summary>
     /// The symbol character value of FNC4 in code set A, Table 1 of ISO/IEC 15417. It adds 128 to the next data character.
     /// </summary>
     private const int FunctionFourInA = 101;
@@ -93,11 +103,6 @@ internal static class CodablockFEncoder
     private const int FunctionFourInB = 100;
 
     /// <summary>
-    /// The symbol character value of Start A, which starts every row.
-    /// </summary>
-    private const int StartA = 103;
-
-    /// <summary>
     /// The symbol character value of the stop character, the one character of seven elements.
     /// </summary>
     private const int Stop = 106;
@@ -106,11 +111,6 @@ internal static class CodablockFEncoder
     /// The modulus of the Code 128 check character that ends every row.
     /// </summary>
     private const int RowModulus = 103;
-
-    /// <summary>
-    /// The row indicator of the second row; each row that follows adds one.
-    /// </summary>
-    private const int SecondRowIndicator = 43;
 
     /// <summary>
     /// The code sets of the Code 128 symbol characters.

@@ -321,6 +321,31 @@ public class BarcodeDecoderTests
     }
 
     /// <summary>
+    /// A Codablock F symbol decodes to its data in every code set and column count, the extended characters of FNC4 included.
+    /// </summary>
+    /// <param name="columns">The number of data columns.</param>
+    /// <param name="text">The data.</param>
+    [Theory]
+    [InlineData(4, "CODABLOCK F")]
+    [InlineData(8, "1234567890123456")]
+    [InlineData(8, "a1234567b")]
+    [InlineData(5, "lower and UPPER case\u0001\t\r\n control characters")]
+    [InlineData(10, "Latin-1 \u00E9\u00FC\u00DF and digits 0123456789 and more text to fill several rows")]
+    [InlineData(20, "The quick brown fox jumps over the lazy dog 0123456789 !\"#$%&'()*+,-./")]
+    public void CodablockF_RoundTrips(int columns, string text)
+    {
+        text = System.Text.RegularExpressions.Regex.Unescape(text);
+        AssertReads(new CodablockFSymbology(columns), text, BarcodeFamily.CodablockF, "]O4", text);
+    }
+
+    /// <summary>
+    /// A HIBC Codablock F symbol decodes to the flag character, the data and the check character it carries.
+    /// </summary>
+    [Fact]
+    public void HibcCodablockF_ReadsTheEncodedData()
+        => AssertReads(new HibcCodablockFSymbology(), "A123BJC5D6E71", BarcodeFamily.CodablockF, "]O4", "+A123BJC5D6E71G");
+
+    /// <summary>
     /// A symbol reads upright, on either side and upside down.
     /// </summary>
     /// <param name="mode">The rotation of the image.</param>
@@ -371,6 +396,7 @@ public class BarcodeDecoderTests
         yield return (new MicroPdf417Symbology(), "Micro rotated", BarcodeFamily.MicroPdf417, "Micro rotated");
         yield return (new Code16KSymbology(), "Code 16K rotated", BarcodeFamily.Code16K, "Code 16K rotated");
         yield return (new Code49Symbology(), "Code 49 rotated", BarcodeFamily.Code49, "Code 49 rotated");
+        yield return (new CodablockFSymbology(), "Codablock F rotated", BarcodeFamily.CodablockF, "Codablock F rotated");
         yield return (new IntelligentMailSymbology(), "0123456709498765432101234567891", BarcodeFamily.IntelligentMail, "0123456709498765432101234567891");
     }
 

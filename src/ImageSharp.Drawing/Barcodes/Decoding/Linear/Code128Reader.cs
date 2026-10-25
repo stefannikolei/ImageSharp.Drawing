@@ -81,7 +81,7 @@ internal sealed class Code128Reader : LinearReader
     /// <param name="count">The number of values written: the start character and the data characters, without the check character.</param>
     /// <param name="end">The index of the light run after the stop character.</param>
     /// <returns><see langword="true"/> when the characters read and check.</returns>
-    private static bool TryReadFrom(ReadOnlySpan<int> runs, int start, Span<int> values, out int count, out int end)
+    public static bool TryReadFrom(ReadOnlySpan<int> runs, int start, Span<int> values, out int count, out int end)
     {
         count = 0;
         end = 0;
@@ -138,6 +138,31 @@ internal sealed class Code128Reader : LinearReader
 
         count--;
         return true;
+    }
+
+    /// <summary>
+    /// Returns the character value whose pattern best matches six runs.
+    /// </summary>
+    /// <param name="runs">The six runs, bar first.</param>
+    /// <param name="first">The lowest value to try.</param>
+    /// <param name="last">The highest value to try.</param>
+    /// <returns>The value, or -1 when no pattern matches.</returns>
+    public static int Best(ReadOnlySpan<int> runs, int first, int last)
+    {
+        float best = MaximumVariance;
+        int value = -1;
+        ReadOnlySpan<int> widths = Widths;
+        for (int v = first; v <= last; v++)
+        {
+            float variance = Variance(runs, widths.Slice(v * 6, 6), MaximumIndividualVariance);
+            if (variance < best)
+            {
+                best = variance;
+                value = v;
+            }
+        }
+
+        return value;
     }
 
     /// <summary>
@@ -264,31 +289,6 @@ internal sealed class Code128Reader : LinearReader
     /// <returns><see langword="true"/> for an application indicator.</returns>
     private static bool IsApplicationIndicator(ReadOnlySpan<char> data)
         => (data.Length == 1 && char.IsAsciiLetter(data[0])) || (data.Length == 2 && char.IsAsciiDigit(data[0]) && char.IsAsciiDigit(data[1]));
-
-    /// <summary>
-    /// Returns the character value whose pattern best matches six runs.
-    /// </summary>
-    /// <param name="runs">The six runs, bar first.</param>
-    /// <param name="first">The lowest value to try.</param>
-    /// <param name="last">The highest value to try.</param>
-    /// <returns>The value, or -1 when no pattern matches.</returns>
-    private static int Best(ReadOnlySpan<int> runs, int first, int last)
-    {
-        float best = MaximumVariance;
-        int value = -1;
-        ReadOnlySpan<int> widths = Widths;
-        for (int v = first; v <= last; v++)
-        {
-            float variance = Variance(runs, widths.Slice(v * 6, 6), MaximumIndividualVariance);
-            if (variance < best)
-            {
-                best = variance;
-                value = v;
-            }
-        }
-
-        return value;
-    }
 
     /// <summary>
     /// Unpacks the patterns: six widths of four bits each, the first element in the highest bits. The stop character has seven elements, and its first six are

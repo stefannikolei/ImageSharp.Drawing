@@ -105,7 +105,9 @@ internal sealed class DecodeContext
     }
 
     /// <summary>
-    /// Adds a symbol to the results unless a symbol of the same family and text is there.
+    /// Adds a symbol to the results unless a symbol of the same family and text is there. A row of a stacked symbol can read as a linear symbol of its own, as
+    /// a Codablock F row reads as Code 128, so a linear or height modulated symbol whose centre lies inside a stacked or matrix symbol found before is not
+    /// added either.
     /// </summary>
     /// <param name="family">The family.</param>
     /// <param name="text">The transmitted data.</param>
@@ -119,7 +121,66 @@ internal sealed class DecodeContext
             return false;
         }
 
+        if ((family & (BarcodeFamily.Stacked | BarcodeFamily.Matrix)) == 0 && this.Covers(Centre(corners)))
+        {
+            return false;
+        }
+
         this.results.Add(new DecodedBarcode(family, text, identifier, corners));
         return true;
+    }
+
+    /// <summary>
+    /// Returns the centre of a polygon: the mean of its corners.
+    /// </summary>
+    /// <param name="corners">The corners.</param>
+    /// <returns>The centre.</returns>
+    private static PointF Centre(PointF[] corners)
+    {
+        float x = 0;
+        float y = 0;
+        foreach (PointF corner in corners)
+        {
+            x += corner.X;
+            y += corner.Y;
+        }
+
+        return new PointF(x / corners.Length, y / corners.Length);
+    }
+
+    /// <summary>
+    /// Returns a value indicating whether a stacked or matrix symbol found so far covers a point, by the crossings of a ray from the point with the edges of
+    /// the symbol.
+    /// </summary>
+    /// <param name="point">The point.</param>
+    /// <returns><see langword="true"/> when a symbol covers the point.</returns>
+    private bool Covers(PointF point)
+    {
+        foreach (DecodedBarcode result in this.results)
+        {
+            if ((result.Family & (BarcodeFamily.Stacked | BarcodeFamily.Matrix)) == 0)
+            {
+                continue;
+            }
+
+            ReadOnlySpan<PointF> corners = result.Corners;
+            bool inside = false;
+            for (int i = 0, j = corners.Length - 1; i < corners.Length; j = i++)
+            {
+                PointF a = corners[i];
+                PointF b = corners[j];
+                if ((a.Y > point.Y) != (b.Y > point.Y) && point.X < a.X + ((point.Y - a.Y) * (b.X - a.X) / (b.Y - a.Y)))
+                {
+                    inside = !inside;
+                }
+            }
+
+            if (inside)
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 }
