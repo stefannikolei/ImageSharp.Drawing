@@ -35,7 +35,7 @@ public class BarcodeDecodeTests
         | BarcodeFamily.DataBarExpanded | BarcodeFamily.IntelligentMail | BarcodeFamily.Pdf417
         | BarcodeFamily.MicroPdf417 | BarcodeFamily.QrCode | BarcodeFamily.MicroQrCode | BarcodeFamily.RectangularMicroQrCode
         | BarcodeFamily.DataMatrix | BarcodeFamily.Aztec | BarcodeFamily.AztecRune
-        | BarcodeFamily.MaxiCode | BarcodeFamily.HanXin | BarcodeFamily.CodeOne;
+        | BarcodeFamily.MaxiCode | BarcodeFamily.HanXin | BarcodeFamily.CodeOne | BarcodeFamily.DotCode;
 
     /// <summary>
     /// Gets the resolutions at which a module of one point draws at 1 to 7 pixels. The module draws at a whole number of pixels, so these are all the

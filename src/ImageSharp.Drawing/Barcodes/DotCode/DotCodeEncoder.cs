@@ -41,7 +41,7 @@ internal static class DotCodeEncoder
     /// <summary>
     /// The prime modulus of the Reed-Solomon field and the number of codeword values.
     /// </summary>
-    private const int Modulus = 113;
+    public const int Modulus = 113;
 
     /// <summary>
     /// The most codewords of one Reed-Solomon block, one less than <see cref="Modulus"/>.
@@ -51,12 +51,12 @@ internal static class DotCodeEncoder
     /// <summary>
     /// The number of dots of a codeword pattern.
     /// </summary>
-    private const int DotsPerCodeword = 9;
+    public const int DotsPerCodeword = 9;
 
     /// <summary>
     /// The number of dots that carry the mask value, before the codewords.
     /// </summary>
-    private const int MaskDots = 2;
+    public const int MaskDots = 2;
 
     /// <summary>
     /// The number of check codewords of a symbol with no data codewords. Each two data codewords add one more.
@@ -64,14 +64,19 @@ internal static class DotCodeEncoder
     private const int MinimumCheckCodewords = 3;
 
     /// <summary>
+    /// The number of corner dots, which carry the last bits of the dot stream.
+    /// </summary>
+    private const int CornerCount = 6;
+
+    /// <summary>
     /// The radix in which binary mode reads the bytes it packs.
     /// </summary>
-    private const int BinaryByteRadix = 259;
+    public const int BinaryByteRadix = 259;
 
     /// <summary>
     /// The radix of the codewords that binary mode writes.
     /// </summary>
-    private const int BinaryCodewordRadix = 103;
+    public const int BinaryCodewordRadix = 103;
 
     /// <summary>
     /// The width to height ratio of a symbol whose size is not given.
@@ -91,122 +96,122 @@ internal static class DotCodeEncoder
     /// <summary>
     /// The FNC1 codeword. It has this value in code sets A, B and C.
     /// </summary>
-    private const int Fnc1Codeword = 107;
+    public const int Fnc1Codeword = 107;
 
     /// <summary>
     /// The upper shift A codeword. It has this value in code sets A, B and C.
     /// </summary>
-    private const int UpperShiftA = 110;
+    public const int UpperShiftA = 110;
 
     /// <summary>
     /// The upper shift B codeword. It has this value in code sets A, B and C.
     /// </summary>
-    private const int UpperShiftB = 111;
+    public const int UpperShiftB = 111;
 
     /// <summary>
     /// The codeword that latches to binary mode. It has this value in code sets A, B and C.
     /// </summary>
-    private const int BinaryLatch = 112;
+    public const int BinaryLatch = 112;
 
     /// <summary>
     /// The codeword of code sets A and B that shifts to code set C for two digit pairs. The shifts for three and four digit pairs follow it.
     /// </summary>
-    private const int ShiftC2 = 103;
+    public const int ShiftC2 = 103;
 
     /// <summary>
     /// The codeword of code sets A and B that latches to code set C.
     /// </summary>
-    private const int LatchC = 106;
+    public const int LatchC = 106;
 
     /// <summary>
     /// The codeword of code set A that shifts to code set B for one character. The shifts for two to six characters follow it.
     /// </summary>
-    private const int AShiftB1 = 96;
+    public const int AShiftB1 = 96;
 
     /// <summary>
     /// The codeword of code set A that latches to code set B.
     /// </summary>
-    private const int ALatchB = 102;
+    public const int ALatchB = 102;
 
     /// <summary>
     /// The codeword of code set B that shifts to code set A.
     /// </summary>
-    private const int BShiftA = 101;
+    public const int BShiftA = 101;
 
     /// <summary>
     /// The codeword of code set B that latches to code set A.
     /// </summary>
-    private const int BLatchA = 102;
+    public const int BLatchA = 102;
 
     /// <summary>
     /// The codeword of code set B for the CR LF pair.
     /// </summary>
-    private const int BCrLf = 96;
+    public const int BCrLf = 96;
 
     /// <summary>
     /// The codeword of code set C for the 17xxxxxx10 macro.
     /// </summary>
-    private const int CSeventeenTen = 100;
+    public const int CSeventeenTen = 100;
 
     /// <summary>
     /// The codeword of code set C that latches to code set A.
     /// </summary>
-    private const int CLatchA = 101;
+    public const int CLatchA = 101;
 
     /// <summary>
     /// The codeword of code set C that shifts to code set B for one character. The shifts for two to four characters follow it.
     /// </summary>
-    private const int CShiftB1 = 102;
+    public const int CShiftB1 = 102;
 
     /// <summary>
     /// The codeword of code set C that latches to code set B.
     /// </summary>
-    private const int CLatchB = 106;
+    public const int CLatchB = 106;
 
     /// <summary>
     /// The codeword of binary mode that shifts to code set C for two digit pairs. The shifts for three to seven digit pairs follow it.
     /// </summary>
-    private const int BinaryShiftC2 = 103;
+    public const int BinaryShiftC2 = 103;
 
     /// <summary>
     /// The codeword of binary mode that terminates to code set A.
     /// </summary>
-    private const int BinaryTerminateA = 109;
+    public const int BinaryTerminateA = 109;
 
     /// <summary>
     /// The codeword of binary mode that terminates to code set B.
     /// </summary>
-    private const int BinaryTerminateB = 110;
+    public const int BinaryTerminateB = 110;
 
     /// <summary>
     /// The codeword of binary mode that terminates to code set C.
     /// </summary>
-    private const int BinaryTerminateC = 111;
+    public const int BinaryTerminateC = 111;
 
     /// <summary>
     /// The first codeword of code set B of a message that starts with the macro header [)&gt;RS05GS.
     /// </summary>
-    private const int Macro05 = 97;
+    public const int Macro05 = 97;
 
     /// <summary>
     /// The first codeword of code set B of a message that starts with the macro header [)&gt;RS06GS.
     /// </summary>
-    private const int Macro06 = 98;
+    public const int Macro06 = 98;
 
     /// <summary>
     /// The first codeword of code set B of a message that starts with the macro header [)&gt;RS12GS.
     /// </summary>
-    private const int Macro12 = 99;
+    public const int Macro12 = 99;
 
     /// <summary>
     /// The first codeword of code set B of a message that starts with the macro header [)&gt;RS and any two other digits.
     /// </summary>
-    private const int MacroAny = 100;
+    public const int MacroAny = 100;
 
     /// <summary>
     /// The pad codeword. In code sets A and B it latches to code set C, and in code set C it latches to code set B, so a run of them carries nothing.
     /// </summary>
-    private const int Pad = 106;
+    public const int Pad = 106;
 
     /// <summary>
     /// The code sets of the encodation.
@@ -279,12 +284,12 @@ internal static class DotCodeEncoder
     /// <summary>
     /// Gets the amounts the four masks add to successive data codewords, modulo 113.
     /// </summary>
-    private static ReadOnlySpan<byte> MaskFactors => [0, 3, 7, 17];
+    public static ReadOnlySpan<byte> MaskFactors => [0, 3, 7, 17];
 
     /// <summary>
     /// Gets the dot pattern of each codeword value: nine dots, five of them dark, the first dot as the most significant of nine bits.
     /// </summary>
-    private static ReadOnlySpan<ushort> Patterns =>
+    public static ReadOnlySpan<ushort> Patterns =>
     [
         0b101010101, 0b010101011, 0b010101101, 0b010110101, 0b011010101, 0b101010110, 0b101011010, 0b101101010, 0b110101010, 0b010101110,
         0b010110110, 0b010111010, 0b011010110, 0b011011010, 0b011101010, 0b100101011, 0b100101101, 0b100110101, 0b101001011, 0b101001101,
@@ -390,28 +395,26 @@ internal static class DotCodeEncoder
         }
 
         // The data codewords grow while one more, with its share of check codewords, still fits.
-        int dotCount = rows * columns / 2;
-        int nd = dataCount;
-        while (DotCount(nd + 1) <= dotCount)
-        {
-            nd++;
-        }
-
-        int nw = CodewordCount(nd);
-        if (DotCount(nd) > dotCount)
+        int nd = DataCodewords(columns, rows);
+        if (nd < dataCount)
         {
             throw new ArgumentException("The text does not fit in a DotCode symbol of the requested size.", nameof(text));
         }
 
-        // The second rent holds the mask value and the masked codewords, and two grids of cells: the symbol under the current mask and the best so far.
+        // The second rent holds the mask value and the masked codewords, the cell of each dot of the stream, and two grids of cells: the symbol under the
+        // current mask and the best so far.
+        int nw = CodewordCount(nd);
+        int dotCount = rows * columns / 2;
         int cellCount = rows * columns;
         int cellInts = (cellCount + sizeof(int) - 1) / sizeof(int);
-        using PooledBuffer<int> layoutBuffer = new(nw + 1 + (2 * cellInts));
+        using PooledBuffer<int> layoutBuffer = new(nw + 1 + dotCount + (2 * cellInts));
         Span<int> masked = layoutBuffer.Span[..(nw + 1)];
-        Span<byte> cells = MemoryMarshal.Cast<int, byte>(layoutBuffer.Span.Slice(nw + 1, cellInts))[..cellCount];
-        Span<byte> best = MemoryMarshal.Cast<int, byte>(layoutBuffer.Span.Slice(nw + 1 + cellInts, cellInts))[..cellCount];
+        Span<int> order = layoutBuffer.Span.Slice(nw + 1, dotCount);
+        Span<byte> cells = MemoryMarshal.Cast<int, byte>(layoutBuffer.Span.Slice(nw + 1 + dotCount, cellInts))[..cellCount];
+        Span<byte> best = MemoryMarshal.Cast<int, byte>(layoutBuffer.Span.Slice(nw + 1 + dotCount + cellInts, cellInts))[..cellCount];
 
-        DotLayout layout = new(codewords[..dataCount], nd, writer.EndsInBinary, columns, rows, masked);
+        CellOrder(columns, rows, order);
+        DotLayout layout = new(codewords[..dataCount], nd, writer.EndsInBinary, order, masked);
         double bestScore = double.MinValue;
         for (int mask = 0; mask < MaskFactors.Length; mask++)
         {
@@ -443,6 +446,112 @@ internal static class DotCodeEncoder
 
         Span<bool> modules = symbol.BeginDotted(columns, rows, QuietZone, xDimension);
         MemoryMarshal.Cast<byte, bool>(best).CopyTo(modules);
+    }
+
+    /// <summary>
+    /// Returns the most data codewords that a symbol of a size holds: the data codewords grow while one more, with its share of check codewords, still fits
+    /// the dot cells, half the cells. The encoder pads the data to this count.
+    /// </summary>
+    /// <param name="columns">The number of columns.</param>
+    /// <param name="rows">The number of rows.</param>
+    /// <returns>The number of data codewords, or -1 when the symbol holds not even the check codewords.</returns>
+    public static int DataCodewords(int columns, int rows)
+    {
+        int dotCount = rows * columns / 2;
+        int nd = -1;
+        while (DotCount(nd + 1) <= dotCount)
+        {
+            nd++;
+        }
+
+        return nd;
+    }
+
+    /// <summary>
+    /// Returns the number of Reed-Solomon blocks of a symbol, each of at most 112 codewords. Block s takes every step-th codeword from s, where the step is the
+    /// number of blocks.
+    /// </summary>
+    /// <param name="total">The number of codewords: the mask value, the data and the check codewords.</param>
+    /// <returns>The number of blocks.</returns>
+    public static int BlockCount(int total) => ((total - 1) / MaximumBlockLength) + 1;
+
+    /// <summary>
+    /// Returns the data and check codewords of one Reed-Solomon block. Block s holds codewords s, s + step, and so on: its data first and then its check
+    /// codewords.
+    /// </summary>
+    /// <param name="total">The number of codewords: the mask value, the data and the check codewords.</param>
+    /// <param name="dataCount">The number of codewords protected, the mask value and the data.</param>
+    /// <param name="step">The number of blocks.</param>
+    /// <param name="start">The block.</param>
+    /// <param name="blockData">The number of data codewords of the block.</param>
+    /// <param name="checkCount">The number of check codewords of the block.</param>
+    public static void BlockSize(int total, int dataCount, int step, int start, out int blockData, out int checkCount)
+    {
+        // Block start holds codewords start, start + step, and so on: ceil((count - start) / step) of them.
+        blockData = (dataCount - start + step - 1) / step;
+        checkCount = ((total - start + step - 1) / step) - blockData;
+    }
+
+    /// <summary>
+    /// Writes the cell of each dot of the stream. A dot cell is one whose column and row sum to an even number. With even rows the stream fills them column by
+    /// column from the top left; with odd rows it fills them row by row from the bottom left upward. The six corner cells carry the last six bits, so the
+    /// stream passes over them and they end the order. Each lies where the column and the row sum to an even number, because the sides sum to an odd number.
+    /// </summary>
+    /// <param name="columns">The number of columns.</param>
+    /// <param name="rows">The number of rows.</param>
+    /// <param name="order">The buffer of the cell indices, row-major, one for each of the rows x columns / 2 dots.</param>
+    public static void CellOrder(int columns, int rows, Span<int> order)
+    {
+        int dotCount = rows * columns / 2;
+        Span<int> corners = order.Slice(dotCount - CornerCount, CornerCount);
+        CornerCells(columns, rows, corners);
+        int bit = 0;
+        bool evenRows = (rows & 1) == 0;
+        int outer = evenRows ? columns : rows;
+        int inner = evenRows ? rows : columns;
+        for (int a = 0; a < outer; a++)
+        {
+            for (int b = 0; b < inner; b++)
+            {
+                int x = evenRows ? a : b;
+                int y = evenRows ? b : rows - 1 - a;
+                int index = (y * columns) + x;
+                if (((x + y) & 1) == 0 && !corners.Contains(index))
+                {
+                    order[bit++] = index;
+                }
+            }
+        }
+    }
+
+    /// <summary>
+    /// Writes the cells of the six corner dots in the order of the last six bits.
+    /// </summary>
+    /// <param name="columns">The number of columns.</param>
+    /// <param name="rows">The number of rows.</param>
+    /// <param name="corners">The buffer of six cell indices to write.</param>
+    private static void CornerCells(int columns, int rows, Span<int> corners)
+    {
+        int last = columns - 1;
+        int bottom = (rows - 1) * columns;
+        if ((rows & 1) == 0)
+        {
+            corners[0] = bottom - columns + last;
+            corners[1] = bottom - columns;
+            corners[2] = bottom + last - 1;
+            corners[3] = bottom + 1;
+            corners[4] = last;
+            corners[5] = 0;
+        }
+        else
+        {
+            corners[0] = last - 1;
+            corners[1] = bottom + last - 1;
+            corners[2] = columns + last;
+            corners[3] = bottom - columns + last;
+            corners[4] = 0;
+            corners[5] = bottom;
+        }
     }
 
     /// <summary>
@@ -504,7 +613,7 @@ internal static class DotCodeEncoder
     /// </summary>
     /// <param name="dataCount">The number of data codewords.</param>
     /// <returns>The number of codewords, the mask value excluded.</returns>
-    private static int CodewordCount(int dataCount) => dataCount + (dataCount / 2) + MinimumCheckCodewords;
+    public static int CodewordCount(int dataCount) => dataCount + (dataCount / 2) + MinimumCheckCodewords;
 
     /// <summary>
     /// Returns the number of dots that a symbol with the given data codewords needs: the mask dots and the dots of every codeword.
@@ -522,16 +631,14 @@ internal static class DotCodeEncoder
     private static void AddErrorCorrection(Span<int> codewords, int dataCount)
     {
         int total = codewords.Length;
-        int step = ((total - 1) / MaximumBlockLength) + 1;
+        int step = BlockCount(total);
 
         // A block holds at most 112 codewords, and its check codewords are three plus half its data, so a block has at most 39 check codewords.
         InlineArray64<int> generatorStorage = default;
         InlineArray64<int> registerStorage = default;
         for (int start = 0; start < step; start++)
         {
-            // Block start holds codewords start, start + step, and so on: ceil((count - start) / step) of them.
-            int blockData = (dataCount - start + step - 1) / step;
-            int checkCount = ((total - start + step - 1) / step) - blockData;
+            BlockSize(total, dataCount, step, start, out int blockData, out int checkCount);
             Span<int> generator = ((Span<int>)generatorStorage)[..checkCount];
             Span<int> register = ((Span<int>)registerStorage)[..checkCount];
             Generator(generator);
@@ -735,11 +842,6 @@ internal static class DotCodeEncoder
     private readonly ref struct DotLayout
     {
         /// <summary>
-        /// The marker of the six corner cells while the stream fills the other dot cells.
-        /// </summary>
-        private const byte Reserved = 2;
-
-        /// <summary>
         /// The data codewords before padding.
         /// </summary>
         private readonly ReadOnlySpan<int> data;
@@ -755,14 +857,9 @@ internal static class DotCodeEncoder
         private readonly bool endsInBinary;
 
         /// <summary>
-        /// The number of columns.
+        /// The cell of each dot of the stream, the six corner cells last.
         /// </summary>
-        private readonly int columns;
-
-        /// <summary>
-        /// The number of rows.
-        /// </summary>
-        private readonly int rows;
+        private readonly ReadOnlySpan<int> order;
 
         /// <summary>
         /// The mask value followed by the masked data and check codewords.
@@ -775,16 +872,14 @@ internal static class DotCodeEncoder
         /// <param name="data">The data codewords before padding.</param>
         /// <param name="dataCount">The number of data codewords after padding.</param>
         /// <param name="endsInBinary">Whether the data ends in binary mode.</param>
-        /// <param name="columns">The number of columns.</param>
-        /// <param name="rows">The number of rows.</param>
+        /// <param name="order">The cell of each dot of the stream, from <see cref="CellOrder"/>.</param>
         /// <param name="masked">The buffer of the mask value and the masked codewords, one longer than the data and check codewords.</param>
-        public DotLayout(ReadOnlySpan<int> data, int dataCount, bool endsInBinary, int columns, int rows, Span<int> masked)
+        public DotLayout(ReadOnlySpan<int> data, int dataCount, bool endsInBinary, ReadOnlySpan<int> order, Span<int> masked)
         {
             this.data = data;
             this.dataCount = dataCount;
             this.endsInBinary = endsInBinary;
-            this.columns = columns;
-            this.rows = rows;
+            this.order = order;
             this.masked = masked;
         }
 
@@ -812,43 +907,13 @@ internal static class DotCodeEncoder
 
             AddErrorCorrection(codewords, this.dataCount + 1);
 
-            // The six corner cells carry the last six bits, so they are reserved while the stream fills the other dot cells. Each lies where the column and the
-            // row sum to an even number, because the sides sum to an odd number.
-            InlineArray6<int> cornerStorage = default;
-            Span<int> corners = cornerStorage;
-            this.CornerCells(corners);
+            // Each bit of the stream takes its cell, and the six corner cells take the last six bits, or are dark when lit.
+            ReadOnlySpan<int> order = this.order;
+            int corners = order.Length - CornerCount;
             cells.Clear();
-            foreach (int corner in corners)
+            for (int bit = 0; bit < order.Length; bit++)
             {
-                cells[corner] = Reserved;
-            }
-
-            // A dot cell is one whose column and row sum to an even number. With even rows the stream fills them column by column from the top left;
-            // with odd rows it fills them row by row from the bottom left upward.
-            int columns = this.columns;
-            int rows = this.rows;
-            int bitCount = (rows * columns / 2) - corners.Length;
-            int bit = 0;
-            bool evenRows = (rows & 1) == 0;
-            int outer = evenRows ? columns : rows;
-            int inner = evenRows ? rows : columns;
-            for (int a = 0; a < outer && bit < bitCount; a++)
-            {
-                for (int b = 0; b < inner && bit < bitCount; b++)
-                {
-                    int x = evenRows ? a : b;
-                    int y = evenRows ? b : rows - 1 - a;
-                    int index = (y * columns) + x;
-                    if (((x + y) & 1) == 0 && cells[index] != Reserved)
-                    {
-                        cells[index] = (byte)this.Bit(bit++);
-                    }
-                }
-            }
-
-            for (int c = 0; c < corners.Length; c++)
-            {
-                cells[corners[c]] = litCorners ? (byte)1 : (byte)this.Bit(bitCount + c);
+                cells[order[bit]] = litCorners && bit >= corners ? (byte)1 : (byte)this.Bit(bit);
             }
         }
 
@@ -868,34 +933,6 @@ internal static class DotCodeEncoder
             int offset = index - MaskDots;
             int codeword = 1 + (offset / DotsPerCodeword);
             return codeword < this.masked.Length ? (Patterns[this.masked[codeword]] >> (DotsPerCodeword - 1 - (offset % DotsPerCodeword))) & 1 : 1;
-        }
-
-        /// <summary>
-        /// Writes the cells of the six corner dots in the order of the last six bits.
-        /// </summary>
-        /// <param name="corners">The buffer of six cell indices to write.</param>
-        private readonly void CornerCells(Span<int> corners)
-        {
-            int last = this.columns - 1;
-            int bottom = (this.rows - 1) * this.columns;
-            if ((this.rows & 1) == 0)
-            {
-                corners[0] = bottom - this.columns + last;
-                corners[1] = bottom - this.columns;
-                corners[2] = bottom + last - 1;
-                corners[3] = bottom + 1;
-                corners[4] = last;
-                corners[5] = 0;
-            }
-            else
-            {
-                corners[0] = last - 1;
-                corners[1] = bottom + last - 1;
-                corners[2] = this.columns + last;
-                corners[3] = bottom - this.columns + last;
-                corners[4] = 0;
-                corners[5] = bottom;
-            }
         }
     }
 

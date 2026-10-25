@@ -689,6 +689,50 @@ public class BarcodeDecoderTests
         => AssertReads(new CodeOneSymbology(version), text, BarcodeFamily.CodeOne, "]o0", expected);
 
     /// <summary>
+    /// A DotCode symbol decodes through code sets A, B and C, their shifts and latches, the upper shifts, binary mode and the macro codewords, at sizes from
+    /// the data and fixed sizes with even and odd rows.
+    /// </summary>
+    /// <param name="columns">The columns, or 0 for the size from the data.</param>
+    /// <param name="rows">The rows, or 0 for the rows from the columns.</param>
+    /// <param name="text">The data.</param>
+    [Theory]
+    [InlineData(0, 0, "DotCode")]
+    [InlineData(0, 0, "1234567890123456")]
+    [InlineData(0, 0, "UPPER CASE CONTROL \u0001\u0002\u0003\u0004\u0005\u0006\u0007 AND MORE")]
+    [InlineData(0, 0, "Mixed Case with digits 12345678 and punctuation {}|~")]
+    [InlineData(0, 0, "Line one\r\nLine two\ttab")]
+    [InlineData(0, 0, "Bytes \u00E9\u00FC\u00C0 and a run \u00E9\u00E9\u00E9\u00E9\u00E9\u00E9\u00E9\u00E9\u00E9\u00E9\u00E9 end")]
+    [InlineData(0, 0, "\u00E9\u00E9\u00E9\u00E9\u00E91234567890\u00E9\u00E9")]
+    [InlineData(0, 0, "A\u0080B\u00A01")]
+    [InlineData(0, 0, "Expiry 1726123110ABC")]
+    [InlineData(0, 0, "[)>\u001E05\u001DMACRO 05\u001E\u0004")]
+    [InlineData(0, 0, "[)>\u001E06\u001DMACRO 06\u001E\u0004")]
+    [InlineData(0, 0, "[)>\u001E12\u001DMACRO 12\u001E\u0004")]
+    [InlineData(0, 0, "[)>\u001E42MACRO ANY\u0004")]
+    [InlineData(20, 0, "Twenty columns")]
+    [InlineData(13, 10, "sm")]
+    [InlineData(40, 31, "Odd rows")]
+    [InlineData(41, 30, "Even rows")]
+    public void DotCode_RoundTrips(int columns, int rows, string text)
+    {
+        text = System.Text.RegularExpressions.Regex.Unescape(text);
+        DotCodeSymbology symbology = columns == 0 ? new DotCodeSymbology() : rows == 0 ? new DotCodeSymbology(columns) : new DotCodeSymbology(columns, rows);
+        AssertReads(symbology, text, BarcodeFamily.DotCode, "]J0", text);
+    }
+
+    /// <summary>
+    /// A GS1 DotCode symbol transmits its element strings with the symbology identifier ]J1, through the 17xxxxxx10 macro where the expiry date meets a batch.
+    /// </summary>
+    /// <param name="text">The element strings.</param>
+    /// <param name="expected">The transmitted data.</param>
+    [Theory]
+    [InlineData("(01)09521234543213(17)240101(10)ABC123", "01095212345432131724010110ABC123")]
+    [InlineData("(10)ABC123(21)XYZ789", "10ABC123\u001D21XYZ789")]
+    [InlineData("(01)09521234543213(3103)000123", "01095212345432133103000123")]
+    public void Gs1DotCode_ReadsTheElementStrings(string text, string expected)
+        => AssertReads(new Gs1DotCodeSymbology(), text, BarcodeFamily.DotCode, "]J1", System.Text.RegularExpressions.Regex.Unescape(expected));
+
+    /// <summary>
     /// A symbol reads upright, on either side and upside down.
     /// </summary>
     /// <param name="mode">The rotation of the image.</param>
@@ -755,6 +799,8 @@ public class BarcodeDecoderTests
         yield return (new CodeOneSymbology(), "Code One rotated", BarcodeFamily.CodeOne, "Code One rotated");
         yield return (new CodeOneSymbology(CodeOneVersion.T16), "T16", BarcodeFamily.CodeOne, "T16");
         yield return (new CodeOneSymbology(CodeOneVersion.S10), "123456", BarcodeFamily.CodeOne, "123456");
+        yield return (new DotCodeSymbology(), "DotCode rotated", BarcodeFamily.DotCode, "DotCode rotated");
+        yield return (new DotCodeSymbology(30, 21), "DotCode odd rows", BarcodeFamily.DotCode, "DotCode odd rows");
         yield return (new IntelligentMailSymbology(), "0123456709498765432101234567891", BarcodeFamily.IntelligentMail, "0123456709498765432101234567891");
     }
 
