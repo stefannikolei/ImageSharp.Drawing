@@ -83,6 +83,7 @@ public static class BarcodeDecoder
         new HanXinReader(),
         new CodeOneReader(),
         new DotCodeReader(),
+        new UltracodeReader(),
     ];
 
     /// <summary>

@@ -733,6 +733,65 @@ public class BarcodeDecoderTests
         => AssertReads(new Gs1DotCodeSymbology(), text, BarcodeFamily.DotCode, "]J1", System.Text.RegularExpressions.Regex.Unescape(expected));
 
     /// <summary>
+    /// An Ultracode symbol decodes from a colour image at every error correction level and in every height, up to the largest symbol.
+    /// </summary>
+    /// <param name="level">The error correction level.</param>
+    /// <param name="length">The length of the text, or 0 for the text as given.</param>
+    /// <param name="text">The text, or the characters the text repeats.</param>
+    [Theory]
+    [InlineData(UltracodeErrorCorrectionLevel.EC1, 0, "Ultracode")]
+    [InlineData(UltracodeErrorCorrectionLevel.EC2, 0, "Latin-1 \\u00E9\\u00FC\\u00C0 and control \\u0001\\u0002")]
+    [InlineData(UltracodeErrorCorrectionLevel.EC3, 50, "Three tile rows ")]
+    [InlineData(UltracodeErrorCorrectionLevel.EC4, 100, "Four tile rows ")]
+    [InlineData(UltracodeErrorCorrectionLevel.EC5, 150, "Five tile rows ")]
+    [InlineData(UltracodeErrorCorrectionLevel.EC1, 263, "The largest symbol 0123456789 ")]
+    public void Ultracode_RoundTrips(UltracodeErrorCorrectionLevel level, int length, string text)
+    {
+        text = System.Text.RegularExpressions.Regex.Unescape(text);
+        if (length > 0)
+        {
+            text = string.Concat(Enumerable.Repeat(text, (length / text.Length) + 1))[..length];
+        }
+
+        using Image<Rgba32> image = DrawColorImage(new UltracodeSymbology(level), text);
+
+        DecodedBarcode result = Assert.Single(BarcodeDecoder.Decode(image, new BarcodeDecoderOptions { Families = BarcodeFamily.Ultracode }));
+        Assert.Equal(BarcodeFamily.Ultracode, result.Family);
+        Assert.Equal("]X0", result.SymbologyIdentifier);
+        Assert.Equal(text, result.Text);
+    }
+
+    /// <summary>
+    /// An Ultracode symbol reads upright, on either side and upside down, and with the default families.
+    /// </summary>
+    /// <param name="mode">The rotation of the image.</param>
+    [Theory]
+    [InlineData(RotateMode.None)]
+    [InlineData(RotateMode.Rotate90)]
+    [InlineData(RotateMode.Rotate180)]
+    [InlineData(RotateMode.Rotate270)]
+    public void Ultracode_ReadsRotatedSymbols(RotateMode mode)
+    {
+        using Image<Rgba32> image = DrawColorImage(new UltracodeSymbology(), "Ultracode rotated");
+        image.Mutate(x => x.Rotate(mode));
+
+        DecodedBarcode result = Assert.Single(BarcodeDecoder.Decode(image));
+        Assert.Equal(BarcodeFamily.Ultracode, result.Family);
+        Assert.Equal("Ultracode rotated", result.Text);
+    }
+
+    /// <summary>
+    /// The tiles of an Ultracode symbol differ by hue alone, so a grey image of one reads as nothing.
+    /// </summary>
+    [Fact]
+    public void Ultracode_GreyImageReadsNothing()
+    {
+        using Image<L8> image = DrawImage(new UltracodeSymbology(), "Ultracode", new BarcodeOptions());
+
+        Assert.Empty(BarcodeDecoder.Decode(image, new BarcodeDecoderOptions { Families = BarcodeFamily.Ultracode }));
+    }
+
+    /// <summary>
     /// A symbol reads upright, on either side and upside down.
     /// </summary>
     /// <param name="mode">The rotation of the image.</param>
@@ -837,5 +896,22 @@ public class BarcodeDecoderTests
     {
         byte[] pixels = BarcodeDecodeTests.Draw(symbology, text, options, out int width, out int height);
         return Image.LoadPixelData<L8>(pixels, width, height);
+    }
+
+    /// <summary>
+    /// Draws a symbol at the default options into a colour image on white with a margin on every side.
+    /// </summary>
+    /// <param name="symbology">The symbology.</param>
+    /// <param name="text">The text to encode.</param>
+    /// <returns>The image.</returns>
+    private static Image<Rgba32> DrawColorImage(BarcodeSymbology symbology, string text)
+    {
+        BarcodeOptions options = new();
+        PointF origin = new(20, 20);
+        RectangleF bounds = BarcodeMeasurer.MeasureRenderableBounds(symbology, options, origin, text);
+
+        Image<Rgba32> image = new((int)MathF.Ceiling(bounds.Right) + 20, (int)MathF.Ceiling(bounds.Bottom) + 20, Color.White.ToPixel<Rgba32>());
+        image.Mutate(x => x.Paint(canvas => canvas.DrawBarcode(symbology, options, origin, text)));
+        return image;
     }
 }

@@ -701,9 +701,10 @@ internal static class MatrixEmitter
     }
 
     /// <summary>
-    /// The brushes of the colored modules. Brushes are immutable, so every draw shares them. A nested class creates them on the first colored symbol only.
+    /// The brushes of the colored modules. Brushes are immutable, so every draw shares them. A nested class creates them on the first colored symbol only. The
+    /// Ultracode reader tells the colours apart by these brushes.
     /// </summary>
-    private static class ModuleBrushes
+    internal static class ModuleBrushes
     {
         /// <summary>
         /// The brush of a cyan module.

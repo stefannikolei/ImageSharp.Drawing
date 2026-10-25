@@ -25,27 +25,27 @@ internal static class UltracodeEncoder
     /// <summary>
     /// The prime modulus of the Reed-Solomon field.
     /// </summary>
-    private const int Modulus = 283;
+    public const int Modulus = 283;
 
     /// <summary>
     /// The start codeword of a message of 8-bit characters, ISO/IEC 8859-1.
     /// </summary>
-    private const int StartLatin1 = 257;
+    public const int StartLatin1 = 257;
 
     /// <summary>
     /// The codeword that separates the error correction from the data in the tile sequence.
     /// </summary>
-    private const int Separator = 283;
+    public const int Separator = 283;
 
     /// <summary>
     /// The pad codeword that fills the tiles after the data.
     /// </summary>
-    private const int Pad = 284;
+    public const int Pad = 284;
 
     /// <summary>
     /// The codewords before the data in the message: the start codeword, the message codeword count and the auxiliary codeword count.
     /// </summary>
-    private const int MessageHeader = 3;
+    public const int MessageHeader = 3;
 
     /// <summary>
     /// The tiles outside the message and its check codewords: the tile count, the separator and the check codeword count.
@@ -55,23 +55,23 @@ internal static class UltracodeEncoder
     /// <summary>
     /// The modules of a tile, all in one column.
     /// </summary>
-    private const int TileHeight = 5;
+    public const int TileHeight = 5;
 
     /// <summary>
     /// The bits of the colour code of one tile module.
     /// </summary>
-    private const int ColorBits = 2;
+    public const int ColorBits = 2;
 
     /// <summary>
     /// The modules a tile row takes with the timing row below it.
     /// </summary>
-    private const int RowPitch = TileHeight + 1;
+    public const int RowPitch = TileHeight + 1;
 
     /// <summary>
     /// The columns left of the first tile column: the black edge, a timing column, the column of the data column count code, a black column and a light
     /// column. The right edge adds one more column, so a symbol is its tile columns plus six.
     /// </summary>
-    private const int LeftColumns = 5;
+    public const int LeftColumns = 5;
 
     /// <summary>
     /// The column that the vertical timing columns count from. They stand every <see cref="TimingSpacing"/> columns after it. The finder draws this column
@@ -87,12 +87,12 @@ internal static class UltracodeEncoder
     /// <summary>
     /// The column of the data column count code.
     /// </summary>
-    private const int CountColumn = 2;
+    public const int CountColumn = 2;
 
     /// <summary>
     /// The most tile columns, timing columns included.
     /// </summary>
-    private const int MaximumColumns = 61;
+    public const int MaximumColumns = 61;
 
     /// <summary>
     /// The values of one symbol height in <see cref="Heights"/>.
@@ -121,7 +121,7 @@ internal static class UltracodeEncoder
     /// Gets the tile of each codeword, 0 to 284: the five module colours from the top, two bits each with the top module in the highest bits, 0 cyan,
     /// 1 magenta, 2 yellow and 3 green.
     /// </summary>
-    private static ReadOnlySpan<ushort> Tiles =>
+    public static ReadOnlySpan<ushort> Tiles =>
     [
         70, 71, 73, 75, 77, 78, 97, 98, 99, 100, 102, 103, 108, 109, 110, 113, 114, 115, 116, 118,
         119, 120, 121, 123, 134, 135, 137, 141, 142, 145, 146, 147, 152, 153, 155, 156, 157, 158, 177, 178,
@@ -243,12 +243,62 @@ internal static class UltracodeEncoder
     }
 
     /// <summary>
+    /// Returns the fewest tile columns of a symbol height.
+    /// </summary>
+    /// <param name="tileRows">The tile rows.</param>
+    /// <returns>The fewest tile columns, timing columns included, or -1 when no symbol has the height.</returns>
+    public static int FewestColumns(int tileRows)
+    {
+        for (int i = 0; i < Heights.Length; i += HeightFields)
+        {
+            if (Heights[i] == tileRows)
+            {
+                return Heights[i + 3];
+            }
+        }
+
+        return -1;
+    }
+
+    /// <summary>
+    /// Draws the black edges, the timing patterns and the finder of a symbol, the modules that do not depend on the data.
+    /// </summary>
+    /// <param name="modules">The module colours, row-major. The modules of the tiles and the data column count code keep their colours.</param>
+    /// <param name="columns">The number of columns.</param>
+    /// <param name="rows">The number of rows.</param>
+    public static void DrawStructure(Span<BarcodeModuleColor> modules, int columns, int rows) => new TileGrid(modules, columns, rows).DrawStructure();
+
+    /// <summary>
+    /// Moves from the top module of one tile to that of the next: down the tile column, past each horizontal timing row, then to the top of the next tile
+    /// column, past each vertical timing column. The first tile has its top module in row 1 of column <see cref="LeftColumns"/>.
+    /// </summary>
+    /// <param name="x">The column of the tile.</param>
+    /// <param name="y">The row of the top module of the tile.</param>
+    /// <param name="rows">The number of rows of the symbol.</param>
+    public static void NextTile(ref int x, ref int y, int rows)
+    {
+        y += TileHeight;
+        if (y != rows - 1)
+        {
+            y++;
+            return;
+        }
+
+        x++;
+        y = 1;
+        if ((x - FirstTimingColumn) % TimingSpacing == 0)
+        {
+            x++;
+        }
+    }
+
+    /// <summary>
     /// Returns the tile columns of a width that hold tiles. The vertical timing columns stand at tile columns 15, 31 and 47, one every 16 from 15, and hold
     /// none.
     /// </summary>
     /// <param name="tileColumns">The tile columns, timing columns included.</param>
     /// <returns>The tile columns that hold tiles.</returns>
-    private static int DataColumns(int tileColumns) => tileColumns - ((tileColumns + 1) / TimingSpacing);
+    public static int DataColumns(int tileColumns) => tileColumns - ((tileColumns + 1) / TimingSpacing);
 
     /// <summary>
     /// Writes the Reed-Solomon check codewords of the message over the prime field of 283. The message is the header codewords followed by one codeword a
@@ -487,26 +537,13 @@ internal static class UltracodeEncoder
         }
 
         /// <summary>
-        /// Writes the tile of a codeword at the next place: down the tile column, past each horizontal timing row, then to the top of the next tile column,
-        /// past each vertical timing column.
+        /// Writes the tile of a codeword at the next place, in the order of <see cref="NextTile"/>.
         /// </summary>
         /// <param name="codeword">The codeword, 0 to 284.</param>
         public void Write(int codeword)
         {
             this.DrawTile(this.x, this.y, Tiles[codeword]);
-            this.y += TileHeight;
-            if (this.y != this.rows - 1)
-            {
-                this.y++;
-                return;
-            }
-
-            this.x++;
-            this.y = 1;
-            if ((this.x - FirstTimingColumn) % TimingSpacing == 0)
-            {
-                this.x++;
-            }
+            NextTile(ref this.x, ref this.y, this.rows);
         }
 
         /// <summary>
